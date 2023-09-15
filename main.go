@@ -68,8 +68,7 @@ func main() {
 			controllers.ListAdmin(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-
-			w.Write([]byte("Hello World!"))
+			controllers.AddAdmin(w, r, db)
 		})
 
 	})

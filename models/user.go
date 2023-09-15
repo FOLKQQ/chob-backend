@@ -13,5 +13,19 @@ type Admin struct {
 	Role_id    uint   `json:"role_id"`
 	Pstag_id   uint   `json:"pstag_id"`
 	Team_id    uint   `json:"team_id"`
-	Regis_time string `json:"regis_time"`
+	Token_link string `json:"token_link"`
+	User_id    string `json:"user_id"`
+}
+
+type AddAdmin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Fistname string `json:"fistname"`
+	Lastname string `json:"lastname"`
+	Email    string `json:"email"`
+	Image    string `json:"image"`
+	Status   string `json:"status"`
+	Role_id  uint   `json:"role_id"`
+	Pstag_id uint   `json:"pstag_id"`
+	Team_id  uint   `json:"team_id"`
 }

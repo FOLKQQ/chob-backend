@@ -4,15 +4,30 @@ import (
 	"backend/models"
 	"database/sql"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const SecretKey = "chob-backend-2023"
+
+type User struct {
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Firstname string `json:"firstname"`
+	Lastname  string `json:"lastname"`
+	Email     string `json:"email"`
+	Status    string `json:"status"`
+	RoleID    int    `json:"role_id"`
+	PstagID   int    `json:"pstag_id"`
+	TeamID    int    `json:"team_id"`
+}
 
 func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// get json body from request and decode to user struct fmt.Println( username, password)))
@@ -22,6 +37,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	//fmt.Println(admin.Username, admin.Password)
 
 	// ดำเนินการค้นหาข้อมูลจากฐานข้อมูล
 	row := db.QueryRow("SELECT * FROM tbadmins WHERE username = ?", admin.Username)
@@ -41,7 +57,8 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		&adminDB.Role_id,
 		&adminDB.Pstag_id,
 		&adminDB.Team_id,
-		&adminDB.Regis_time,
+		&adminDB.Token_link,
+		&adminDB.User_id,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +83,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["id"] = adminDB.Id
 	claims["username"] = adminDB.Username
-	claims["exp"] = time.Now().Add(time.Hour * 4).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * 5).Unix()
 
 	// สร้าง access token
 	accessToken, err := token.SignedString([]byte(SecretKey))
@@ -80,6 +97,16 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
 		"access_token": accessToken,
+		"Username":     adminDB.Username,
+		"Role":         fmt.Sprintf("%d", adminDB.Role_id),
+		"Team":         fmt.Sprintf("%d", adminDB.Team_id),
+		"Status":       adminDB.Status,
+		"Email":        adminDB.Email,
+		"Firstname":    adminDB.Fistname,
+		"Lastname":     adminDB.Lastname,
+		"Image":        adminDB.Image,
+		"Token_link":   adminDB.Token_link,
+		"User_id":      adminDB.User_id,
 	})
 }
 
@@ -112,7 +139,8 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&admin.Role_id,
 			&admin.Pstag_id,
 			&admin.Team_id,
-			&admin.Regis_time,
+			&admin.Token_link,
+			&admin.User_id,
 		)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -139,4 +167,49 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
+}
+
+func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	var user User
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// ตรวจสอบว่ามีอีเมลในฐานข้อมูลหรือไม่
+	var emailExists bool
+	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if emailExists {
+		// หยุดการทำงานและส่งข้อความว่า "อีเมลนี้มีอยู่แล้ว"
+		http.Error(w, "อีเมลนี้มีอยู่แล้ว", http.StatusConflict)
+		return
+	}
+
+	// สร้าง hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// rendom token_link สำหรับยืนยันตัวตน
+	// rendom token_link สำหรับยืนยันตัวตน
+	token_link := uuid.New().String()
+
+	// get time utc+7 thailand time zone
+	//t := time.Now().UTC().Add(time.Hour * 7)
+
+	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
+	_, err = db.Exec("INSERT INTO tbadmins (username, password, firstname, lastname, email, status, role_id, pstag_id, team_id , token_link ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)",
+		user.Username, hash, user.Firstname, user.Lastname, user.Email, user.Status, user.RoleID, user.PstagID, user.TeamID, token_link)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ส่งข้อความว่า "บันทึกข้อมูลเรียบร้อยแล้ว"
+	fmt.Fprintf(w, "บันทึกข้อมูลเรียบร้อยแล้ว")
 }
