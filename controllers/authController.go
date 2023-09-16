@@ -100,6 +100,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		"Username":     adminDB.Username,
 		"Role":         fmt.Sprintf("%d", adminDB.Role_id),
 		"Team":         fmt.Sprintf("%d", adminDB.Team_id),
+		"Pstag":        fmt.Sprintf("%d", adminDB.Pstag_id),
 		"Status":       adminDB.Status,
 		"Email":        adminDB.Email,
 		"Firstname":    adminDB.Fistname,
