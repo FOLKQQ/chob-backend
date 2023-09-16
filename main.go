@@ -3,7 +3,9 @@
 package main
 
 import (
-	"backend/controllers"
+	"backend/controllers/authController"
+	rolecontrollers "backend/controllers/roleController"
+	teamcontroller "backend/controllers/teamController"
 	"backend/database"
 	"backend/middleware"
 	"fmt"
@@ -58,19 +60,53 @@ func main() {
 	})
 
 	r.Post("/loginadmins", func(w http.ResponseWriter, r *http.Request) {
-		controllers.LoginAdmins(w, r, db)
-
+		authcontrollers.LoginAdmins(w, r, db)
 	})
 
 	r.Route("/admins", func(r chi.Router) {
 		r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			controllers.ListAdmin(w, r, db)
+			authcontrollers.ListAdmin(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			controllers.AddAdmin(w, r, db)
+			authcontrollers.AddAdmin(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			authcontrollers.UpdateAdmin(w, r, db)
+		})
+	})
+
+	r.Route("/roles", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			rolecontrollers.Listroles(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			rolecontrollers.Addroles(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			rolecontrollers.UpdateRoles(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			rolecontrollers.DeleteRoles(w, r, db)
 		})
 
+	})
+
+	r.Route("/teams", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			teamcontroller.Listteams(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			teamcontroller.Addteams(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			teamcontroller.Updateteams(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			teamcontroller.Deleteteams(w, r, db)
+		})
 	})
 
 	http.ListenAndServe(":8000", r)

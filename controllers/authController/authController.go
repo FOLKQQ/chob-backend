@@ -1,7 +1,7 @@
-package controllers
+package authcontrollers
 
 import (
-	"backend/models"
+	"backend/models/adminModel"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -17,21 +17,13 @@ import (
 
 const SecretKey = "chob-backend-2023"
 
-type User struct {
-	Username  string `json:"username"`
-	Password  string `json:"password"`
-	Firstname string `json:"firstname"`
-	Lastname  string `json:"lastname"`
-	Email     string `json:"email"`
-	Status    string `json:"status"`
-	RoleID    int    `json:"role_id"`
-	PstagID   int    `json:"pstag_id"`
-	TeamID    int    `json:"team_id"`
+func GeneratePasswordHash(password string) ([]byte, error) {
+	return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 }
 
 func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// get json body from request and decode to user struct fmt.Println( username, password)))
-	admin := models.Admin{}
+	admin := adminModel.Admin{}
 	err := json.NewDecoder(r.Body).Decode(&admin)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,7 +34,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// ดำเนินการค้นหาข้อมูลจากฐานข้อมูล
 	row := db.QueryRow("SELECT * FROM tbadmins WHERE username = ?", admin.Username)
 	// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
-	adminDB := models.Admin{}
+	adminDB := adminModel.Admin{}
 	// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 	err = row.Scan(
 		&adminDB.Id,
@@ -121,11 +113,11 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer rows.Close()
 
 	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
-	results := []models.Admin{}
+	results := []adminModel.Admin{}
 	//
 	for rows.Next() {
 		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
-		admin := models.Admin{}
+		admin := adminModel.Admin{}
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
 			&admin.Id,
@@ -171,7 +163,8 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	var user User
+	// สร้างตัวแปรเพื่อเก็บข้อมูลที่รับมาจาก client
+	user := adminModel.AddAdmin{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -181,7 +174,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// ตรวจสอบว่ามีอีเมลในฐานข้อมูลหรือไม่
 	var emailExists bool
-	err := db.QueryRow("SELECT EXISTS(SELECT 1 FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
+	err := db.QueryRow("SELECT COUNT(*) FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -193,7 +186,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// สร้าง hash password
-	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hash, err := GeneratePasswordHash(user.Password)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -213,4 +206,25 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// ส่งข้อความว่า "บันทึกข้อมูลเรียบร้อยแล้ว"
 	fmt.Fprintf(w, "บันทึกข้อมูลเรียบร้อยแล้ว")
+}
+
+func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// สร้างตัวแปรเพื่อเก็บข้อมูลที่รับมาจาก client
+	user := adminModel.Admin{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล เช็คจาก email
+	_, err := db.Exec("UPDATE tbadmins SET username = ?, firstname = ?, lastname = ?, email = ?, status = ?, role_id = ?, pstag_id = ?, team_id = ? WHERE email = ?",
+		user.Username, user.Fistname, user.Lastname, user.Email, user.Status, user.Role_id, user.Pstag_id, user.Team_id, user.Email)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ส่งข้อความว่า "อัพเดทข้อมูลเรียบร้อยแล้ว"
+	fmt.Fprintf(w, "อัพเดทข้อมูลเรียบร้อยแล้ว")
 }
