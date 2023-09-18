@@ -4,6 +4,7 @@ package main
 
 import (
 	"backend/controllers/authController"
+	companycontroller "backend/controllers/companyController"
 	rolecontrollers "backend/controllers/roleController"
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
@@ -109,9 +110,21 @@ func main() {
 		})
 	})
 
+	r.Route("/companys", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			companycontroller.ListCompany(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Hello World!"))
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Hello World!"))
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("Hello World!"))
+		})
+	})
+
 	http.ListenAndServe(":8000", r)
 }
-
-const SecretKey = "chob-backend-2023"
-
-//create check Authorization token SecretKey

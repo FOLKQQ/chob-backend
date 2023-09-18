@@ -73,7 +73,6 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// สร้าง token
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["id"] = adminDB.Id
 	claims["username"] = adminDB.Username
 	claims["exp"] = time.Now().Add(time.Hour * 5).Unix()
 
