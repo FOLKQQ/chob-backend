@@ -32,12 +32,15 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	//fmt.Println(admin.Username, admin.Password)
 
 	// ดำเนินการค้นหาข้อมูลจากฐานข้อมูล
-	row := db.QueryRow("SELECT * FROM tbadmins WHERE username = ?", admin.Username)
+	row := db.QueryRow("SELECT * FROM tbadmins WHERE email = ?", admin.Email)
 	// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
 	adminDB := adminModel.Admin{}
 	// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 	err = row.Scan(
 		&adminDB.Id,
+		&adminDB.Role_id,
+		&adminDB.Pstag_id,
+		&adminDB.Team_id,
 		&adminDB.Username,
 		&adminDB.Password,
 		&adminDB.Fistname,
@@ -46,11 +49,8 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		&adminDB.Image,
 		&adminDB.Status,
 		&adminDB.Timestamps,
-		&adminDB.Role_id,
-		&adminDB.Pstag_id,
-		&adminDB.Team_id,
-		&adminDB.Token_link,
 		&adminDB.User_id,
+		&adminDB.Token_link,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -87,18 +87,18 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
-		"access_token": accessToken,
-		"Username":     adminDB.Username,
-		"Role":         fmt.Sprintf("%d", adminDB.Role_id),
-		"Team":         fmt.Sprintf("%d", adminDB.Team_id),
-		"Pstag":        fmt.Sprintf("%d", adminDB.Pstag_id),
-		"Status":       adminDB.Status,
-		"Email":        adminDB.Email,
-		"Firstname":    adminDB.Fistname,
-		"Lastname":     adminDB.Lastname,
-		"Image":        adminDB.Image,
-		"Token_link":   adminDB.Token_link,
-		"User_id":      adminDB.User_id,
+		"accessToken": accessToken,
+		"Username":    adminDB.Username,
+		"Role":        fmt.Sprintf("%d", adminDB.Role_id),
+		"Team":        fmt.Sprintf("%d", adminDB.Team_id),
+		"Pstag":       fmt.Sprintf("%d", adminDB.Pstag_id),
+		"Status":      adminDB.Status,
+		"Email":       adminDB.Email,
+		"Firstname":   adminDB.Fistname,
+		"Lastname":    adminDB.Lastname,
+		"Image":       adminDB.Image,
+		"Token_link":  adminDB.Token_link,
+		"User_id":     adminDB.User_id,
 	})
 }
 
@@ -172,7 +172,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer r.Body.Close()
 
 	// ตรวจสอบว่ามีอีเมลในฐานข้อมูลหรือไม่
-	var emailExists bool
+	/*var emailExists bool
 	err := db.QueryRow("SELECT COUNT(*) FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
 	if err != nil {
 		log.Fatal(err)
@@ -182,7 +182,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		// หยุดการทำงานและส่งข้อความว่า "อีเมลนี้มีอยู่แล้ว"
 		http.Error(w, "อีเมลนี้มีอยู่แล้ว", http.StatusConflict)
 		return
-	}
+	}*/
 
 	// สร้าง hash password
 	hash, err := GeneratePasswordHash(user.Password)
