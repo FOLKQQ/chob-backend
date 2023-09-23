@@ -39,3 +39,35 @@ func ValidateToken(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func Rolesv(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == "" {
+			http.Error(w, "Authorization header required", http.StatusUnauthorized)
+			return
+		}
+		// ดึงค่า token จาก header ของ request
+		tokenString := r.Header.Get("Authorization")[7:]
+		// สร้างตัวแปรเพื่อเก็บผลลัพธ์ที่ได้จากการตรวจสอบ token
+		claims := jwt.MapClaims{}
+		// สร้างตัวแปรเพื่อเก็บผลลัพธ์ที่ได้จากการตรวจสอบ token
+		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(SecretKey), nil
+		})
+		// ตรวจสอบว่า token มีข้อผิดพลาดหรือไม่
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		Role := token.Claims.(jwt.MapClaims)["role_id"].(float64)
+
+		if Role == 3 {
+			next.ServeHTTP(w, r)
+		} else {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+	})
+}

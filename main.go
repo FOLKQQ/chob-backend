@@ -3,21 +3,39 @@
 package main
 
 import (
-	"backend/controllers/authController"
+	authcontrollers "backend/controllers/authController"
 	companycontroller "backend/controllers/companyController"
 	rolecontrollers "backend/controllers/roleController"
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
-	"backend/middleware"
+	middlewarejwt "backend/middleware"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/joho/godotenv"
 )
 
+const Role = ""
+
 type Handler func(w http.ResponseWriter, r *http.Request) error
+
+func goDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+}
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := h(w, r); err != nil {
@@ -25,6 +43,28 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(503)
 		w.Write([]byte("bad"))
 	}
+}
+
+func checkrole(w http.ResponseWriter, r *http.Request) {
+
+	dotenv := goDotEnvVariable("SecretKey")
+	tokenString := r.Header.Get("Authorization")[7:]
+	// สร้างตัวแปรเพื่อเก็บผลลัพธ์ที่ได้จากการตรวจสอบ token
+	claims := jwt.MapClaims{}
+	// สร้างตัวแปรเพื่อเก็บผลลัพธ์ที่ได้จากการตรวจสอบ token
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(dotenv), nil
+	})
+	// ตรวจสอบว่า token มีข้อผิดพลาดหรือไม่
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	Role := token.Claims.(jwt.MapClaims)["role_id"].(float64)
+	// return Role
+	fmt.Println(Role)
+
 }
 
 func main() {
@@ -65,7 +105,8 @@ func main() {
 	})
 
 	r.Route("/admins", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			authcontrollers.ListAdmin(w, r, db)
 		})
@@ -79,6 +120,7 @@ func main() {
 
 	r.Route("/roles", func(r chi.Router) {
 		r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.Listroles(w, r, db)
 		})
@@ -95,6 +137,7 @@ func main() {
 
 	r.Route("/teams", func(r chi.Router) {
 		r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Listteams(w, r, db)
 		})

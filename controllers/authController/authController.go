@@ -125,6 +125,9 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
 			&admin.Id,
+			&admin.Role_id,
+			&admin.Pstag_id,
+			&admin.Team_id,
 			&admin.Username,
 			&admin.Password,
 			&admin.Fistname,
@@ -134,11 +137,8 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&admin.Image,
 			&admin.Status,
 			&admin.Timestamps,
-			&admin.Role_id,
-			&admin.Pstag_id,
-			&admin.Team_id,
-			&admin.Token_link,
 			&admin.User_id,
+			&admin.Token_link,
 		)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
