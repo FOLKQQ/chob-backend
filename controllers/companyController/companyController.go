@@ -99,6 +99,7 @@ func UpdateCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewDecoder(r.Body).Decode(&company)
 	// ดำเนินการแก้ไขข้อมูลลงในฐานข้อมูล
 	_, err := db.Exec("UPDATE tbcompany SET type_company=?,company_name=?,code_identification=?,signature=?,regis_company=?,regis_vat=?,business_type=?,id_dbd=?,pass_dbd=?,id_filing=?,pass_filing=?,email=?,tel=? WHERE id=?",
+		company.Id,
 		company.Type_company,
 		company.Company_name,
 		company.Code_Identification,
@@ -112,7 +113,6 @@ func UpdateCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		company.Pass_filing,
 		company.Email,
 		company.Tel,
-		company.Id,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -35,7 +35,6 @@ func ValidateToken(next http.Handler) http.Handler {
 			http.Error(w, "token is invalid", http.StatusUnauthorized)
 			return
 		}
-
 		// call next handler
 		next.ServeHTTP(w, r)
 	})

@@ -91,7 +91,6 @@ func main() {
 		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.DeleteRoles(w, r, db)
 		})
-
 	})
 
 	r.Route("/teams", func(r chi.Router) {

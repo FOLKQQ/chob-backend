@@ -46,6 +46,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		&adminDB.Fistname,
 		&adminDB.Lastname,
 		&adminDB.Email,
+		&adminDB.Tal,
 		&adminDB.Image,
 		&adminDB.Status,
 		&adminDB.Timestamps,
@@ -74,6 +75,9 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = adminDB.Username
+	claims["role_id"] = adminDB.Role_id
+	claims["pstag_id"] = adminDB.Pstag_id
+	claims["team_id"] = adminDB.Team_id
 	claims["exp"] = time.Now().Add(time.Hour * 5).Unix()
 
 	// สร้าง access token
@@ -94,6 +98,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		"Pstag":       fmt.Sprintf("%d", adminDB.Pstag_id),
 		"Status":      adminDB.Status,
 		"Email":       adminDB.Email,
+		"Tal":         adminDB.Tal,
 		"Firstname":   adminDB.Fistname,
 		"Lastname":    adminDB.Lastname,
 		"Image":       adminDB.Image,
@@ -125,6 +130,7 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&admin.Fistname,
 			&admin.Lastname,
 			&admin.Email,
+			&admin.Tal,
 			&admin.Image,
 			&admin.Status,
 			&admin.Timestamps,
@@ -172,7 +178,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer r.Body.Close()
 
 	// ตรวจสอบว่ามีอีเมลในฐานข้อมูลหรือไม่
-	/*var emailExists bool
+	var emailExists bool
 	err := db.QueryRow("SELECT COUNT(*) FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
 	if err != nil {
 		log.Fatal(err)
@@ -182,7 +188,7 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		// หยุดการทำงานและส่งข้อความว่า "อีเมลนี้มีอยู่แล้ว"
 		http.Error(w, "อีเมลนี้มีอยู่แล้ว", http.StatusConflict)
 		return
-	}*/
+	}
 
 	// สร้าง hash password
 	hash, err := GeneratePasswordHash(user.Password)

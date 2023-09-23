@@ -7,6 +7,7 @@ type Admin struct {
 	Fistname   string `json:"fistname"`
 	Lastname   string `json:"lastname"`
 	Email      string `json:"email"`
+	Tal        string `json:"tal"`
 	Image      string `json:"image"`
 	Status     string `json:"status"`
 	Timestamps string `json:"timestamps"`
