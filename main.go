@@ -158,7 +158,7 @@ func main() {
 			companycontroller.ListCompany(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Hello World!"))
+			companycontroller.AddCompany(w, r, db)
 		})
 		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte("Hello World!"))
