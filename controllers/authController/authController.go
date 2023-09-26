@@ -177,18 +177,22 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	defer r.Body.Close()
 
-	// ตรวจสอบว่ามีอีเมลในฐานข้อมูลหรือไม่
-	var emailExists bool
-	err := db.QueryRow("SELECT COUNT(*) FROM tbadmins WHERE email = ?)", user.Email).Scan(&emailExists)
-	if err != nil {
-		log.Fatal(err)
-	}
+	//check email in database have or not have
+	row := db.QueryRow("SELECT email FROM tbadmins WHERE email = ?", user.Email)
+	// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
+	adminDB := adminModel.Admin{}
+	// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
+	err := row.Scan(
+		&adminDB.Email,
+	)
 
-	if emailExists {
-		// หยุดการทำงานและส่งข้อความว่า "อีเมลนี้มีอยู่แล้ว"
-		http.Error(w, "อีเมลนี้มีอยู่แล้ว", http.StatusConflict)
+	// ตรวจสอบว่ามีข้อมูลผู้ใช้งานหรือไม่
+	if adminDB.Email != "" {
+		http.Error(w, "user have in database", http.StatusNotFound)
 		return
 	}
+
+	fmt.Println("3")
 
 	// สร้าง hash password
 	hash, err := GeneratePasswordHash(user.Password)
@@ -196,12 +200,10 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		log.Fatal(err)
 	}
 	// rendom token_link สำหรับยืนยันตัวตน
-	// rendom token_link สำหรับยืนยันตัวตน
 	token_link := uuid.New().String()
 
 	// get time utc+7 thailand time zone
 	//t := time.Now().UTC().Add(time.Hour * 7)
-
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
 	_, err = db.Exec("INSERT INTO tbadmins (username, password, firstname, lastname, email, status, role_id, pstag_id, team_id , token_link ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)",
 		user.Username, hash, user.Firstname, user.Lastname, user.Email, user.Status, user.RoleID, user.PstagID, user.TeamID, token_link)

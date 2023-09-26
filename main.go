@@ -161,10 +161,10 @@ func main() {
 			companycontroller.AddCompany(w, r, db)
 		})
 		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Hello World!"))
+			companycontroller.UpdateCompany(w, r, db)
 		})
 		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Hello World!"))
+			companycontroller.DeleteCompany(w, r, db)
 		})
 	})
 
