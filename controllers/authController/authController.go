@@ -1,7 +1,8 @@
 package authcontrollers
 
 import (
-	"backend/models/adminModel"
+	adminModel "backend/models/adminModel"
+	//dashboardmodel "backend/models/dashboardModel"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -92,6 +93,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
 		"accessToken": accessToken,
+		"id":          fmt.Sprintf("%d", adminDB.Id),
 		"Username":    adminDB.Username,
 		"Role":        fmt.Sprintf("%d", adminDB.Role_id),
 		"Team":        fmt.Sprintf("%d", adminDB.Team_id),
@@ -234,4 +236,79 @@ func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// ส่งข้อความว่า "อัพเดทข้อมูลเรียบร้อยแล้ว"
 	fmt.Fprintf(w, "อัพเดทข้อมูลเรียบร้อยแล้ว")
+}
+
+func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	user := adminModel.Admin{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	/*
+		//query tbcase จาก admin_id เอาข้อมูล type dashbordModel.Dashboard_case
+		row := db.QueryRow("SELECT id,service_id FROM tbcase WHERE admin_id = ?", user.Id)
+		dashboard_case := dashboardmodel.Dashboard_case{}
+		err := row.Scan(
+			&dashboard_case.Id,
+			&dashboard_case.Service_id,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rowservice := db.QueryRow("SELECT servicetype_id ,date_start,date_end FROM tbservice WHERE company_id = ?", dashboard_case.Service_id)
+		dashboard_service := dashboardmodel.Dashboard_service{}
+		err = rowservice.Scan(
+			&dashboard_service.Servicetype_id,
+			&dashboard_service.Date_start,
+			&dashboard_service.Date_end,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rowservicetype := db.QueryRow("SELECT service_name FROM tbservicetype WHERE id = ?", dashboard_service.Servicetype_id)
+		dashboard_servicetype := dashboardmodel.Dashboard_servicetype{}
+		err = rowservicetype.Scan(
+			&dashboard_servicetype.Service_name,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rowcompany := db.QueryRow("SELECT id, type_company_id,company_name FROM tbcompany WHERE id = ?", dashboard_service.Company_id)
+		dashboard_company := dashboardmodel.Dashboard_company{}
+		err = rowcompany.Scan(
+			&dashboard_company.Id,
+			&dashboard_company.Type_company_id,
+			&dashboard_company.Company_name,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rowsbt_tax := db.QueryRow("SELECT id, e_tax_name, status FROM tbsbt_tax WHERE id = ?", dashboard_case.Id)
+		dashboard_sbt_tax := dashboardmodel.Dashboard_sbt_tax{}
+		err = rowsbt_tax.Scan(
+			&dashboard_sbt_tax.Id,
+			&dashboard_sbt_tax.E_tax_name,
+			&dashboard_sbt_tax.Status,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		//create json rowsbt_tax and rowservicetype and rowservice and rowcompany and rowcase and send to client
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+	*/
+
 }

@@ -4,8 +4,12 @@ package main
 
 import (
 	authcontrollers "backend/controllers/authController"
+	"backend/controllers/caseController"
 	companycontroller "backend/controllers/companyController"
+	pstagcontroller "backend/controllers/pstagController"
 	rolecontrollers "backend/controllers/roleController"
+	"backend/controllers/sbttaxController"
+	"backend/controllers/serviceController"
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
 	middlewarejwt "backend/middleware"
@@ -108,6 +112,7 @@ func main() {
 		r.Use(middlewarejwt.ValidateToken)
 		r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+
 			authcontrollers.ListAdmin(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
@@ -115,6 +120,12 @@ func main() {
 		})
 		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
 			authcontrollers.UpdateAdmin(w, r, db)
+		})
+	})
+	r.Route("/admins/dashboard", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			authcontrollers.DashboardAdmin(w, r, db)
 		})
 	})
 
@@ -165,6 +176,88 @@ func main() {
 		})
 		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.DeleteCompany(w, r, db)
+		})
+	})
+
+	r.Route("/servicetypes", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.Rolesv)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Listservicetype(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Addservicetype(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Updateservicetype(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Deleteservicetype(w, r, db)
+		})
+	})
+
+	r.Route("/services", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Listservice(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Addservice(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Updateservice(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Deleteservice(w, r, db)
+		})
+	})
+
+	r.Route("/cases", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			casecontroller.Listcase(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			casecontroller.Addcase(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			casecontroller.Updatecase(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			casecontroller.Deletecase(w, r, db)
+		})
+	})
+
+	r.Route("/sbttaxs", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			sbttaxcontroller.Listsbttax(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			sbttaxcontroller.Addsbttax(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			sbttaxcontroller.Updatesbttax(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			sbttaxcontroller.Deletesbttax(w, r, db)
+		})
+	})
+
+	r.Route("/pstag", func(r chi.Router) {
+		r.Use(middlewarejwt.ValidateToken)
+		r.Use(middlewarejwt.Rolesv)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			pstagcontroller.Listpstag(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			pstagcontroller.Addpstag(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			pstagcontroller.Updatepstag(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			pstagcontroller.Deletepstag(w, r, db)
 		})
 	})
 

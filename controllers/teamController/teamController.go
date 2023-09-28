@@ -65,10 +65,9 @@ func Addteams(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// ดำเนินการเพิ่มข้อมูลลงในฐานข้อมูล
-	_, err = db.Exec("INSERT INTO tbteam (name,status,timestamps) VALUES (?,?,?)",
+	_, err = db.Exec("INSERT INTO tbteam (name,status) VALUES (?,?)",
 		team.Name,
 		team.Status,
-		team.Timestamps,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -88,10 +87,9 @@ func Updateteams(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// ดำเนินการแก้ไขข้อมูลลงในฐานข้อมูล
-	_, err = db.Exec("UPDATE tbteam SET name=?,status=?,timestamps=? WHERE id=?",
+	_, err = db.Exec("UPDATE tbteam SET name=?,status=? WHERE id=?",
 		team.Name,
 		team.Status,
-		team.Timestamps,
 		team.Id,
 	)
 	if err != nil {
