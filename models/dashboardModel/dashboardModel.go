@@ -1,9 +1,9 @@
 package dashboardmodel
 
 type Dashboard_case struct {
-	Id                uint `json:"id"`
-	Service_id        uint `json:"service_id"`
-	Dashboard_sbt_tax []Dashboard_sbt_tax
+	Id                 uint `json:"id"`
+	Admin_id           uint `json:"admin_id"`
+	Dashboard_sbt_taxs []Dashboard_sbt_tax
 }
 
 type Dashboard_service struct {
@@ -15,10 +15,9 @@ type Dashboard_service struct {
 }
 
 type Dashboard_company struct {
-	Id                uint   `json:"id"`
-	Type_company_id   uint   `json:"type_company_id"`
-	Company_name      string `json:"company_name"`
-	Dashboard_service []Dashboard_service
+	Id           uint   `json:"id"`
+	Type_company uint   `json:"type_company"`
+	Company_name string `json:"company_name"`
 }
 
 type Dashboard_servicetype struct {
@@ -27,7 +26,7 @@ type Dashboard_servicetype struct {
 }
 
 type Dashboard_sbt_tax struct {
-	Id         uint   `json:"id"`
+	Case_id    uint   `json:"case_id"`
 	E_tax_name string `json:"e_tax_name"`
 	Status     string `json:"status"`
 }

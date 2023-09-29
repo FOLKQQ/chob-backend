@@ -2,7 +2,6 @@ package authcontrollers
 
 import (
 	adminModel "backend/models/adminModel"
-	//dashboardmodel "backend/models/dashboardModel"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -238,77 +237,40 @@ func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	fmt.Fprintf(w, "อัพเดทข้อมูลเรียบร้อยแล้ว")
 }
 
+type Case struct {
+	Id       int      `json:"id"`
+	Admin_id int      `json:"admin_id"`
+	Sbt_tax  []string `json:"sbt_tax"`
+}
+
 func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	user := adminModel.Admin{}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+
+	rows, _ := db.Query("SELECT tbcase.id,tbcase.admin_id , tbsbt_tax.e_tax_name FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id WHERE tbcase.admin_id = 1 ;")
+	rowsMap := make(map[int]*Case)
+
+	for rows.Next() {
+		p := struct {
+			ID         int
+			Admin_id   int
+			E_tax_name string
+		}{}
+		rows.Scan(&p.ID, &p.Admin_id, &p.E_tax_name)
+		if _, ok := rowsMap[p.ID]; !ok {
+			rowsMap[p.ID] = &Case{Id: p.ID, Admin_id: p.Admin_id}
+		}
+		rowsMap[p.ID].Sbt_tax = append(rowsMap[p.ID].Sbt_tax, p.E_tax_name)
+	}
+
+	// แปลงข้อมูลใน slice เป็น JSON
+	jsonData, err := json.Marshal(rowsMap)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	defer r.Body.Close()
 
-	/*
-		//query tbcase จาก admin_id เอาข้อมูล type dashbordModel.Dashboard_case
-		row := db.QueryRow("SELECT id,service_id FROM tbcase WHERE admin_id = ?", user.Id)
-		dashboard_case := dashboardmodel.Dashboard_case{}
-		err := row.Scan(
-			&dashboard_case.Id,
-			&dashboard_case.Service_id,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rowservice := db.QueryRow("SELECT servicetype_id ,date_start,date_end FROM tbservice WHERE company_id = ?", dashboard_case.Service_id)
-		dashboard_service := dashboardmodel.Dashboard_service{}
-		err = rowservice.Scan(
-			&dashboard_service.Servicetype_id,
-			&dashboard_service.Date_start,
-			&dashboard_service.Date_end,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rowservicetype := db.QueryRow("SELECT service_name FROM tbservicetype WHERE id = ?", dashboard_service.Servicetype_id)
-		dashboard_servicetype := dashboardmodel.Dashboard_servicetype{}
-		err = rowservicetype.Scan(
-			&dashboard_servicetype.Service_name,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rowcompany := db.QueryRow("SELECT id, type_company_id,company_name FROM tbcompany WHERE id = ?", dashboard_service.Company_id)
-		dashboard_company := dashboardmodel.Dashboard_company{}
-		err = rowcompany.Scan(
-			&dashboard_company.Id,
-			&dashboard_company.Type_company_id,
-			&dashboard_company.Company_name,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rowsbt_tax := db.QueryRow("SELECT id, e_tax_name, status FROM tbsbt_tax WHERE id = ?", dashboard_case.Id)
-		dashboard_sbt_tax := dashboardmodel.Dashboard_sbt_tax{}
-		err = rowsbt_tax.Scan(
-			&dashboard_sbt_tax.Id,
-			&dashboard_sbt_tax.E_tax_name,
-			&dashboard_sbt_tax.Status,
-		)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		//create json rowsbt_tax and rowservicetype and rowservice and rowcompany and rowcase and send to client
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-	*/
+	// ตั้งค่า Header และส่ง JSON กลับไปยัง HTTP Response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
 
 }

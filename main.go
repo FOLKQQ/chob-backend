@@ -123,7 +123,7 @@ func main() {
 		})
 	})
 	r.Route("/admins/dashboard", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
+		//r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			authcontrollers.DashboardAdmin(w, r, db)
 		})
