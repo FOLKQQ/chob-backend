@@ -193,8 +193,6 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		return
 	}
 
-	fmt.Println("3")
-
 	// สร้าง hash password
 	hash, err := GeneratePasswordHash(user.Password)
 	if err != nil {
@@ -238,30 +236,66 @@ func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 type Case struct {
-	Id       int      `json:"id"`
-	Admin_id int      `json:"admin_id"`
-	Sbt_tax  []string `json:"sbt_tax"`
+	Company_id   int    `json:"company_id"`
+	Service_name string `json:"service_name"`
+	Company_name string `json:"company_name"`
+	Type_company string `json:"type_company"`
+	Date_start   string `json:"date_start"`
+	Date_end     string `json:"date_end"`
+	Sbt_tax      []Sbt_tax
+}
+type Sbt_tax struct {
+	E_tax_name string `json:"e_tax_name"`
+	Status     string `json:"status"`
 }
 
 func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// สร้างตัวแปรเพื่อเก็บข้อมูลที่รับมาจาก client
+	user := adminModel.Admin{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&user); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
 
-	rows, _ := db.Query("SELECT tbcase.id,tbcase.admin_id , tbsbt_tax.e_tax_name FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id WHERE tbcase.admin_id = 1 ;")
+	// ดึงข้อมูลจากฐานข้อมูล
+	rows, err := db.Query("SELECT tbcompany.id ,tbcompany.company_name ,tbcompany.type_company ,tbservice_type.service_name,tbservice.date_start,tbservice.date_end,tbsbt_tax.e_tax_name,tbsbt_tax.status FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id JOIN tbservice ON tbservice.id = tbcase.service_id JOIN tbservice_type ON tbservice_type.id = tbservice.servicetype_id JOIN tbcompany ON tbcompany.id = tbservice.company_id WHERE tbcase.admin_id = ?", user.Id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
 	rowsMap := make(map[int]*Case)
 
 	for rows.Next() {
 		p := struct {
-			ID         int
-			Admin_id   int
-			E_tax_name string
+			Company_id   int
+			Service_name string
+			Company_name string
+			Type_company string
+			Date_start   string
+			Date_end     string
+			E_tax_name   string
+			Status       string
 		}{}
-		rows.Scan(&p.ID, &p.Admin_id, &p.E_tax_name)
-		if _, ok := rowsMap[p.ID]; !ok {
-			rowsMap[p.ID] = &Case{Id: p.ID, Admin_id: p.Admin_id}
+		if err := rows.Scan(&p.Service_name, &p.Company_id, &p.Company_name, &p.Type_company, &p.Date_start, &p.Date_end, &p.E_tax_name, &p.Status); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		rowsMap[p.ID].Sbt_tax = append(rowsMap[p.ID].Sbt_tax, p.E_tax_name)
+
+		if _, ok := rowsMap[p.Company_id]; !ok {
+			rowsMap[p.Company_id] = &Case{Service_name: p.Service_name, Company_id: p.Company_id, Company_name: p.Company_name, Type_company: p.Type_company, Date_start: p.Date_start, Date_end: p.Date_end}
+
+		}
+		sbt_tax := Sbt_tax{E_tax_name: p.E_tax_name, Status: p.Status}
+
+		rowsMap[p.Company_id].Sbt_tax = append(rowsMap[p.Company_id].Sbt_tax, sbt_tax)
+
 	}
 
-	// แปลงข้อมูลใน slice เป็น JSON
+	// แปลงข้อมูลใน map เป็น JSON
 	jsonData, err := json.Marshal(rowsMap)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
