@@ -236,12 +236,12 @@ func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 type Case struct {
-	Company_id   int    `json:"company_id"`
-	Service_name string `json:"service_name"`
-	Company_name string `json:"company_name"`
-	Type_company string `json:"type_company"`
-	Date_start   string `json:"date_start"`
-	Date_end     string `json:"date_end"`
+	Id           int
+	Type_company string
+	Company_name string
+	Service_name string
+	Date_start   string
+	Date_end     string
 	Sbt_tax      []Sbt_tax
 }
 type Sbt_tax struct {
@@ -260,7 +260,7 @@ func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer r.Body.Close()
 
 	// ดึงข้อมูลจากฐานข้อมูล
-	rows, err := db.Query("SELECT tbcompany.id ,tbcompany.company_name ,tbcompany.type_company ,tbservice_type.service_name,tbservice.date_start,tbservice.date_end,tbsbt_tax.e_tax_name,tbsbt_tax.status FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id JOIN tbservice ON tbservice.id = tbcase.service_id JOIN tbservice_type ON tbservice_type.id = tbservice.servicetype_id JOIN tbcompany ON tbcompany.id = tbservice.company_id WHERE tbcase.admin_id = ?", user.Id)
+	rows, err := db.Query("SELECT tbcase.id ,tbcompany.type_company,tbcompany.company_name,tbservice_type.service_name,tbservice.date_start,tbservice.date_end ,tbsbt_tax.E_tax_name,tbsbt_tax.Status FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id JOIN tbservice ON tbservice.id = tbcase.service_id JOIN tbservice_type ON tbservice.servicetype_id = tbservice_type.id JOIN tbcompany ON tbcompany.id = tbservice.company_id = tbcompany.id WHERE tbcase.admin_id = ?", user.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -270,28 +270,26 @@ func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	rowsMap := make(map[int]*Case)
 
 	for rows.Next() {
-		p := struct {
-			Company_id   int
-			Service_name string
-			Company_name string
-			Type_company string
-			Date_start   string
-			Date_end     string
-			E_tax_name   string
-			Status       string
-		}{}
-		if err := rows.Scan(&p.Service_name, &p.Company_id, &p.Company_name, &p.Type_company, &p.Date_start, &p.Date_end, &p.E_tax_name, &p.Status); err != nil {
+		casee := Case{}
+		sbt_tax := Sbt_tax{}
+		err := rows.Scan(
+			&casee.Id,
+			&casee.Type_company,
+			&casee.Company_name,
+			&casee.Service_name,
+			&casee.Date_start,
+			&casee.Date_end,
+			&sbt_tax.E_tax_name,
+			&sbt_tax.Status,
+		)
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		if _, ok := rowsMap[p.Company_id]; !ok {
-			rowsMap[p.Company_id] = &Case{Service_name: p.Service_name, Company_id: p.Company_id, Company_name: p.Company_name, Type_company: p.Type_company, Date_start: p.Date_start, Date_end: p.Date_end}
-
+		if _, ok := rowsMap[casee.Id]; !ok {
+			rowsMap[casee.Id] = &casee
 		}
-		sbt_tax := Sbt_tax{E_tax_name: p.E_tax_name, Status: p.Status}
-
-		rowsMap[p.Company_id].Sbt_tax = append(rowsMap[p.Company_id].Sbt_tax, sbt_tax)
+		rowsMap[casee.Id].Sbt_tax = append(rowsMap[casee.Id].Sbt_tax, sbt_tax)
 
 	}
 
