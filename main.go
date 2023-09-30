@@ -3,6 +3,7 @@
 package main
 
 import (
+	"backend/controllers/adminController"
 	authcontrollers "backend/controllers/authController"
 	"backend/controllers/caseController"
 	companycontroller "backend/controllers/companyController"
@@ -113,19 +114,22 @@ func main() {
 		r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 
-			authcontrollers.ListAdmin(w, r, db)
+			admincontroller.ListAdmin(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			authcontrollers.AddAdmin(w, r, db)
+			admincontroller.AddAdmin(w, r, db)
 		})
 		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			authcontrollers.UpdateAdmin(w, r, db)
+			admincontroller.UpdateAdmin(w, r, db)
 		})
 	})
 	r.Route("/admins/dashboard", func(r chi.Router) {
 		//r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			authcontrollers.DashboardAdmin(w, r, db)
+			admincontroller.DashboardAdmin(w, r, db)
+		})
+		r.Post("/status", func(w http.ResponseWriter, r *http.Request) {
+			admincontroller.StatusWork(w, r, db)
 		})
 	})
 

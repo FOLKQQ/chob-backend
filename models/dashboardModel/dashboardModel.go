@@ -1,32 +1,22 @@
 package dashboardmodel
 
-type Dashboard_case struct {
-	Id                 uint `json:"id"`
-	Admin_id           uint `json:"admin_id"`
-	Dashboard_sbt_taxs []Dashboard_sbt_tax
+type Case struct {
+	Id           int
+	Type_company string
+	Company_name string
+	Service_name string
+	Date_start   string
+	Date_end     string
+	Sbt_tax      []Sbt_tax
 }
-
-type Dashboard_service struct {
-	Id             uint   `json:"id"`
-	Company_id     uint   `json:"company_id"`
-	Servicetype_id uint   `json:"servicetype_id"`
-	Date_start     string `json:"date_start"`
-	Date_end       string `json:"date_end"`
-}
-
-type Dashboard_company struct {
-	Id           uint   `json:"id"`
-	Type_company uint   `json:"type_company"`
-	Company_name string `json:"company_name"`
-}
-
-type Dashboard_servicetype struct {
-	Id           uint   `json:"id"`
-	Service_name string `json:"service_name"`
-}
-
-type Dashboard_sbt_tax struct {
-	Case_id    uint   `json:"case_id"`
+type Sbt_tax struct {
 	E_tax_name string `json:"e_tax_name"`
 	Status     string `json:"status"`
+}
+
+type Statusworks struct {
+	Backlog int
+	Ready   int
+	Doing   int
+	Done    int
 }
