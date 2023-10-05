@@ -2,12 +2,11 @@ package servicemodel
 
 type Service struct {
 	Id             uint   `json:"id"`
-	Company_id     uint   `json:"company_id"`
 	Servicetype_id uint   `json:"servicetype_id"`
+	Company_id     uint   `json:"company_id"`
 	Date_start     string `json:"date_start"`
-	Date_end       string `json:"date_end"`
+	Date_due       string `json:"date_dule"`
 	Timestamps     string `json:"timestamps"`
-	Team_id        uint   `json:"team_id"`
 }
 
 type Servicetype struct {

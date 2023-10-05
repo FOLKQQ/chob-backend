@@ -1,15 +1,11 @@
 package roleModel
 
 type Role struct {
-	Id         uint   `json:"id"`
-	Name       string `json:"name"`
-	Widgets    string `json:"widgets"`
-	Status     string `json:"status"`
-	Timestamps string `json:"timestamps"`
-}
-
-type AddRole struct {
-	Name    string `json:"name"`
-	Widgets string `json:"widgets"`
-	Status  string `json:"status"`
+	ID          int    `json:"id"`
+	Title       string `json:"title"`
+	Project     string `json:"project"`
+	Managerrole string `json:"manager_role"`
+	Addtags     string `json:"addtags"`
+	Report      string `json:"report"`
+	Timestamps  string `json:"timestamps"`
 }

@@ -11,7 +11,7 @@ import (
 
 func Listroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// ดำเนินการค้นหาข้อมูลทั้งหมดจากฐานข้อมูล
-	rows, err := db.Query("SELECT * FROM tbadminroles")
+	rows, err := db.Query("SELECT * FROM tbrole")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -26,10 +26,12 @@ func Listroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		role := roleModel.Role{}
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
-			&role.Id,
-			&role.Name,
-			&role.Widgets,
-			&role.Status,
+			&role.ID,
+			&role.Title,
+			&role.Project,
+			&role.Managerrole,
+			&role.Addtags,
+			&role.Report,
 			&role.Timestamps,
 		)
 		if err != nil {
@@ -58,7 +60,7 @@ func Listroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func Addroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// ดึงข้อมูลจากฟอร์ม
-	role := roleModel.AddRole{}
+	role := roleModel.Role{}
 	err := json.NewDecoder(r.Body).Decode(&role)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -66,7 +68,7 @@ func Addroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// สร้างคำสั่ง SQL
-	stmt, err := db.Prepare("INSERT INTO tbadminroles (name, widgets, status) VALUES (?, ?, ?)")
+	stmt, err := db.Prepare("INSERT INTO tbrole (title, project, manager_role, addtags, report) VALUES (?,?,?,?,?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -74,7 +76,7 @@ func Addroles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer stmt.Close()
 
 	// สั่งเรียกใช้งานคำสั่ง SQL
-	result, err := stmt.Exec(role.Name, role.Widgets, role.Status)
+	result, err := stmt.Exec(role.Title, role.Project, role.Managerrole, role.Addtags, role.Report)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -99,7 +101,7 @@ func UpdateRoles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// สร้างคำสั่ง SQL
-	stmt, err := db.Prepare("UPDATE tbadminroles SET name=?, widgets=?, status=? WHERE id=?")
+	stmt, err := db.Prepare("UPDATE tbrole SET title=?, project=?, manager_role=?, addtags=?, report=? WHERE id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -107,7 +109,7 @@ func UpdateRoles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer stmt.Close()
 
 	// สั่งเรียกใช้งานคำสั่ง SQL
-	result, err := stmt.Exec(role.Name, role.Widgets, role.Status, role.Id)
+	result, err := stmt.Exec(role.Title, role.Project, role.Managerrole, role.Addtags, role.Report, role.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -132,7 +134,7 @@ func DeleteRoles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// สร้างคำสั่ง SQL
-	stmt, err := db.Prepare("DELETE FROM tbadminroles WHERE id=?")
+	stmt, err := db.Prepare("DELETE FROM tbrole WHERE id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -140,7 +142,7 @@ func DeleteRoles(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer stmt.Close()
 
 	// สั่งเรียกใช้งานคำสั่ง SQL
-	result, err := stmt.Exec(role.Id)
+	result, err := stmt.Exec(role.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

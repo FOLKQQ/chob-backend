@@ -29,27 +29,25 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
 	results := []adminModel.Admin{}
-	//
 	for rows.Next() {
 		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
 		admin := adminModel.Admin{}
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
-			&admin.Id,
-			&admin.Role_id,
-			&admin.Pstag_id,
-			&admin.Team_id,
+			&admin.ID,
+			&admin.RoleID,
+			&admin.TeamID,
+			&admin.UserID,
 			&admin.Username,
 			&admin.Password,
-			&admin.Fistname,
+			&admin.Firstname,
 			&admin.Lastname,
 			&admin.Email,
-			&admin.Tal,
 			&admin.Image,
+			&admin.Tal,
+			&admin.Token_link,
 			&admin.Status,
 			&admin.Timestamps,
-			&admin.User_id,
-			&admin.Token_link,
 		)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -110,12 +108,13 @@ func AddAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	// rendom token_link สำหรับยืนยันตัวตน
 	token_link := uuid.New().String()
+	fmt.Println(token_link)
 
 	// get time utc+7 thailand time zone
 	//t := time.Now().UTC().Add(time.Hour * 7)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err = db.Exec("INSERT INTO tbadmins (username, password, firstname, lastname, email, status, role_id, pstag_id, team_id , token_link ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ? ,?)",
-		user.Username, hash, user.Firstname, user.Lastname, user.Email, user.Status, user.RoleID, user.PstagID, user.TeamID, token_link)
+	_, err = db.Exec("INSERT INTO tbadmins (role_id, team_id, username, password, firstname, lastname, email, tal, token_link , status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		user.RoleID, user.TeamID, user.Username, hash, user.Firstname, user.Lastname, user.Email, user.Tal, token_link, user.Status)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -135,8 +134,8 @@ func UpdateAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer r.Body.Close()
 
 	// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล เช็คจาก email
-	_, err := db.Exec("UPDATE tbadmins SET username = ?, firstname = ?, lastname = ?, email = ?, status = ?, role_id = ?, pstag_id = ?, team_id = ? WHERE email = ?",
-		user.Username, user.Fistname, user.Lastname, user.Email, user.Status, user.Role_id, user.Pstag_id, user.Team_id, user.Email)
+	_, err := db.Exec("UPDATE tbadmins SET username = ?, firstname = ?, lastname = ?, email = ?, status = ?, role_id = ?, team_id = ? WHERE email = ?",
+		user.Username, user.Firstname, user.Lastname, user.Email, user.Status, user.RoleID, user.TeamID, user.Email)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -156,7 +155,7 @@ func DashboardAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer r.Body.Close()
 
 	// ดึงข้อมูลจากฐานข้อมูล
-	rows, err := db.Query("SELECT tbcase.id ,tbcompany.type_company,tbcompany.company_name,tbservice_type.service_name,tbservice.date_start,tbservice.date_end ,tbsbt_tax.E_tax_name,tbsbt_tax.Status FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id JOIN tbservice ON tbservice.id = tbcase.service_id JOIN tbservice_type ON tbservice.servicetype_id = tbservice_type.id JOIN tbcompany ON tbcompany.id = tbservice.company_id = tbcompany.id WHERE tbcase.admin_id = ? AND tbcase.status = 'active' ", user.Id)
+	rows, err := db.Query("SELECT tbcase.id ,tbcompany.type_company,tbcompany.company_name,tbservice_type.service_name,tbservice.date_start,tbservice.date_end ,tbsbt_tax.E_tax_name,tbsbt_tax.Status FROM tbcase JOIN tbsbt_tax ON tbcase.id = tbsbt_tax.case_id JOIN tbservice ON tbservice.id = tbcase.service_id JOIN tbservice_type ON tbservice.servicetype_id = tbservice_type.id JOIN tbcompany ON tbcompany.id = tbservice.company_id = tbcompany.id WHERE tbcase.admin_id = ? AND tbcase.status = 'active' ", user.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -214,8 +213,39 @@ func StatusWork(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	defer r.Body.Close()
 
-	//statusworks := dashboardmodel.Statusworks{}
+	statusworks := dashboardmodel.Statusworks{}
 
 	// ดึงข้อมูลจากฐานข้อมูล
+
+	row, err := db.Query(" SELECT SUM(CASE WHEN status = 'Backlog' THEN 1 ELSE 0 END) AS BacklogCount,SUM(CASE WHEN status = 'Ready' THEN 1 ELSE 0 END) AS ReadyCount,SUM(CASE WHEN status = 'Doing' THEN 1 ELSE 0 END) AS DoingCount, SUM(CASE WHEN status = 'Done' THEN 1 ELSE 0 END) AS DoneCount FROM tbcase; ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	for row.Next() {
+		err := row.Scan(
+			&statusworks.BacklogCount,
+			&statusworks.ReadyCount,
+			&statusworks.DoingCount,
+			&statusworks.DoneCount,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	// แปลงข้อมูลใน map เป็น JSON
+	jsonData, err := json.Marshal(statusworks)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// ตั้งค่า Header และส่ง JSON กลับไปยัง HTTP Response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
 
 }

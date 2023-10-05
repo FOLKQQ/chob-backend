@@ -24,20 +24,21 @@ func ListCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		company := companyModel.Company{}
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
-			&company.Id,
-			&company.Type_company,
-			&company.Company_name,
-			&company.Code_Identification,
+			&company.ID,
+			&company.TypeCompany,
+			&company.CompanyName,
+			&company.CodeIdentification,
 			&company.Signature,
-			&company.Regis_company,
-			&company.Regis_vat,
-			&company.Business_type,
-			&company.Id_dbd,
-			&company.Pass_dbd,
-			&company.Id_filing,
-			&company.Pass_filing,
+			&company.RegisCompany,
+			&company.RegisVat,
+			&company.BusinessType,
+			&company.IDDBD,
+			&company.PassDBD,
+			&company.IDFiling,
+			&company.PassFiling,
 			&company.Email,
-			&company.Tel,
+			&company.Tal,
+			&company.Status,
 			&company.Timestamps,
 		)
 		if err != nil {
@@ -68,20 +69,20 @@ func AddCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	company := companyModel.Company{}
 	json.NewDecoder(r.Body).Decode(&company)
 	// ดำเนินการเพิ่มข้อมูลลงในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbcompany (type_company,company_name,code_identification,signature,regis_company,regis_vat,business_type,id_dbd,pass_dbd,id_filing,pass_filing,email,tel) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		company.Type_company,
-		company.Company_name,
-		company.Code_Identification,
+	_, err := db.Exec("INSERT INTO tbcompany (type_company,company_name,code_identification,signature,regis_company,regis_vat,business_type,id_dbd,pass_dbd,id_filing,pass_filing,email,tal) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		company.TypeCompany,
+		company.CompanyName,
+		company.CodeIdentification,
 		company.Signature,
-		company.Regis_company,
-		company.Regis_vat,
-		company.Business_type,
-		company.Id_dbd,
-		company.Pass_dbd,
-		company.Id_filing,
-		company.Pass_filing,
+		company.RegisCompany,
+		company.RegisVat,
+		company.BusinessType,
+		company.IDDBD,
+		company.PassDBD,
+		company.IDFiling,
+		company.PassFiling,
 		company.Email,
-		company.Tel,
+		company.Tal,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -98,21 +99,22 @@ func UpdateCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	company := companyModel.Company{}
 	json.NewDecoder(r.Body).Decode(&company)
 	// ดำเนินการแก้ไขข้อมูลลงในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbcompany SET type_company=?,company_name=?,code_identification=?,signature=?,regis_company=?,regis_vat=?,business_type=?,id_dbd=?,pass_dbd=?,id_filing=?,pass_filing=?,email=?,tel=? WHERE id=?",
-		company.Id,
-		company.Type_company,
-		company.Company_name,
-		company.Code_Identification,
+	_, err := db.Exec("UPDATE tbcompany SET type_company=?,company_name=?,code_identification=?,signature=?,regis_company=?,regis_vat=?,business_type=?,id_dbd=?,pass_dbd=?,id_filing=?,pass_filing=?,email=?,tal=?,status=? WHERE id=?",
+		company.TypeCompany,
+		company.CompanyName,
+		company.CodeIdentification,
 		company.Signature,
-		company.Regis_company,
-		company.Regis_vat,
-		company.Business_type,
-		company.Id_dbd,
-		company.Pass_dbd,
-		company.Id_filing,
-		company.Pass_filing,
+		company.RegisCompany,
+		company.RegisVat,
+		company.BusinessType,
+		company.IDDBD,
+		company.PassDBD,
+		company.IDFiling,
+		company.PassFiling,
 		company.Email,
-		company.Tel,
+		company.Tal,
+		company.Status,
+		company.ID,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -129,7 +131,7 @@ func DeleteCompany(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	company := companyModel.Company{}
 	json.NewDecoder(r.Body).Decode(&company)
 	// ดำเนินการลบข้อมูลออกจากฐานข้อมูล
-	_, err := db.Exec("DELETE FROM tbcompany WHERE id=?", company.Id)
+	_, err := db.Exec("DELETE FROM tbcompany WHERE id=?", company.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -35,21 +35,20 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	adminDB := adminModel.Admin{}
 	// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 	err = row.Scan(
-		&adminDB.Id,
-		&adminDB.Role_id,
-		&adminDB.Pstag_id,
-		&adminDB.Team_id,
+		&adminDB.ID,
+		&adminDB.RoleID,
+		&adminDB.TeamID,
+		&adminDB.UserID,
 		&adminDB.Username,
 		&adminDB.Password,
-		&adminDB.Fistname,
+		&adminDB.Firstname,
 		&adminDB.Lastname,
 		&adminDB.Email,
-		&adminDB.Tal,
 		&adminDB.Image,
+		&adminDB.Tal,
+		&adminDB.Token_link,
 		&adminDB.Status,
 		&adminDB.Timestamps,
-		&adminDB.User_id,
-		&adminDB.Token_link,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -57,7 +56,7 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// ตรวจสอบว่ามีข้อมูลผู้ใช้งานหรือไม่
-	if adminDB.Id == 0 {
+	if adminDB.ID == 0 {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
 	}
@@ -73,9 +72,8 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = adminDB.Username
-	claims["role_id"] = adminDB.Role_id
-	claims["pstag_id"] = adminDB.Pstag_id
-	claims["team_id"] = adminDB.Team_id
+	claims["role_id"] = adminDB.RoleID
+	claims["team_id"] = adminDB.TeamID
 	claims["exp"] = time.Now().Add(time.Hour * 5).Unix()
 
 	// สร้าง access token
@@ -89,19 +87,19 @@ func LoginAdmins(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{
-		"accessToken": accessToken,
-		"id":          fmt.Sprintf("%d", adminDB.Id),
-		"Username":    adminDB.Username,
-		"Role":        fmt.Sprintf("%d", adminDB.Role_id),
-		"Team":        fmt.Sprintf("%d", adminDB.Team_id),
-		"Pstag":       fmt.Sprintf("%d", adminDB.Pstag_id),
-		"Status":      adminDB.Status,
-		"Email":       adminDB.Email,
-		"Tal":         adminDB.Tal,
-		"Firstname":   adminDB.Fistname,
-		"Lastname":    adminDB.Lastname,
-		"Image":       adminDB.Image,
-		"Token_link":  adminDB.Token_link,
-		"User_id":     adminDB.User_id,
+		"access_token": accessToken,
+		"id":           fmt.Sprintf("%d", adminDB.ID),
+		"role_id":      fmt.Sprintf("%d", adminDB.RoleID),
+		"team_id":      fmt.Sprintf("%d", adminDB.TeamID),
+		"user_id":      admin.UserID,
+		"username":     adminDB.Username,
+		"firstname":    adminDB.Firstname,
+		"lastname":     adminDB.Lastname,
+		"email":        adminDB.Email,
+		"image":        adminDB.Image,
+		"tal":          adminDB.Tal,
+		"token_link":   adminDB.Token_link,
+		"status":       adminDB.Status,
 	})
+
 }

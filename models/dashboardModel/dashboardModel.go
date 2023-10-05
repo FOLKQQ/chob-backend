@@ -15,8 +15,8 @@ type Sbt_tax struct {
 }
 
 type Statusworks struct {
-	Backlog int
-	Ready   int
-	Doing   int
-	Done    int
+	BacklogCount int `json:"backlog_count"`
+	ReadyCount   int `json:"ready_count"`
+	DoingCount   int `json:"doing_count"`
+	DoneCount    int `json:"done_count"`
 }

@@ -3,17 +3,15 @@
 package main
 
 import (
-	"backend/controllers/adminController"
+	admincontroller "backend/controllers/adminController"
 	authcontrollers "backend/controllers/authController"
-	"backend/controllers/caseController"
 	companycontroller "backend/controllers/companyController"
-	pstagcontroller "backend/controllers/pstagController"
 	rolecontrollers "backend/controllers/roleController"
-	"backend/controllers/sbttaxController"
-	"backend/controllers/serviceController"
+	servicecontroller "backend/controllers/serviceController"
+	taskController "backend/controllers/taskController"
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
-	middlewarejwt "backend/middleware"
+	//middlewarejwt "backend/middleware"
 	"fmt"
 	"log"
 	"net/http"
@@ -110,8 +108,8 @@ func main() {
 	})
 
 	r.Route("/admins", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Use(middlewarejwt.Rolesv)
+		//r.Use(middlewarejwt.ValidateToken)
+		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 
 			admincontroller.ListAdmin(w, r, db)
@@ -128,14 +126,14 @@ func main() {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.DashboardAdmin(w, r, db)
 		})
-		r.Post("/status", func(w http.ResponseWriter, r *http.Request) {
+		r.Get("/statuswork", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.StatusWork(w, r, db)
 		})
 	})
 
 	r.Route("/roles", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Use(middlewarejwt.Rolesv)
+		//r.Use(middlewarejwt.ValidateToken)
+		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.Listroles(w, r, db)
 		})
@@ -151,8 +149,8 @@ func main() {
 	})
 
 	r.Route("/teams", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Use(middlewarejwt.Rolesv)
+		//r.Use(middlewarejwt.ValidateToken)
+		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Listteams(w, r, db)
 		})
@@ -168,7 +166,7 @@ func main() {
 	})
 
 	r.Route("/companys", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
+		//r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.ListCompany(w, r, db)
 		})
@@ -183,9 +181,25 @@ func main() {
 		})
 	})
 
+	r.Route("/services", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Listservice(w, r, db)
+		})
+
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Addservice(w, r, db)
+		})
+		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Updateservice(w, r, db)
+		})
+		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+			servicecontroller.Deleteservice(w, r, db)
+		})
+	})
+
 	r.Route("/servicetypes", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Use(middlewarejwt.Rolesv)
+		//r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Listservicetype(w, r, db)
 		})
@@ -200,70 +214,20 @@ func main() {
 		})
 	})
 
-	r.Route("/services", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
+	r.Route("/task", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			servicecontroller.Listservice(w, r, db)
+			taskController.ListTask(w, r, db)
 		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			servicecontroller.Addservice(w, r, db)
+			taskController.CreateTask(w, r, db)
 		})
 		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			servicecontroller.Updateservice(w, r, db)
+			taskController.UpdateTask(w, r, db)
 		})
 		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
-			servicecontroller.Deleteservice(w, r, db)
+			taskController.DeleteTask(w, r, db)
 		})
 	})
-
-	r.Route("/cases", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			casecontroller.Listcase(w, r, db)
-		})
-		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			casecontroller.Addcase(w, r, db)
-		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			casecontroller.Updatecase(w, r, db)
-		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
-			casecontroller.Deletecase(w, r, db)
-		})
-	})
-
-	r.Route("/sbttaxs", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			sbttaxcontroller.Listsbttax(w, r, db)
-		})
-		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			sbttaxcontroller.Addsbttax(w, r, db)
-		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			sbttaxcontroller.Updatesbttax(w, r, db)
-		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
-			sbttaxcontroller.Deletesbttax(w, r, db)
-		})
-	})
-
-	r.Route("/pstag", func(r chi.Router) {
-		r.Use(middlewarejwt.ValidateToken)
-		r.Use(middlewarejwt.Rolesv)
-		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-			pstagcontroller.Listpstag(w, r, db)
-		})
-		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
-			pstagcontroller.Addpstag(w, r, db)
-		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
-			pstagcontroller.Updatepstag(w, r, db)
-		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
-			pstagcontroller.Deletepstag(w, r, db)
-		})
-	})
-
 	http.ListenAndServe(":8000", r)
 }
