@@ -260,6 +260,9 @@ func main() {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.ListTaskdue(w, r, db)
 		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taskController.GetTaskdue(w, r, db)
+		})
 		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.CreateTaskdue(w, r, db)
 		})
@@ -268,6 +271,25 @@ func main() {
 		})
 		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.DeleteTaskdue(w, r, db)
+		})
+	})
+
+	r.Route("/taskassignees", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.ListTaskassignees(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taskController.GetTaskassignees(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.CreateTaskassignees(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.UpdateTaskassignees(w, r, db)
+		})
+		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.DeleteTaskassignees(w, r, db)
 		})
 	})
 

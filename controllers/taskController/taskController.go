@@ -171,7 +171,7 @@ func ListTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer result.Close()
 	for result.Next() {
 		var taskdue taskModel.Taskdue
-		err := result.Scan(&taskdue.Task_id, &taskdue.Date_due)
+		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_due, &taskdue.Timestamps)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -180,11 +180,30 @@ func ListTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(taskdues)
 }
 
+func GetTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	taskdue := taskModel.Taskdue{}
+	getid := r.URL.Path[len("/taskdue/"):]
+
+	result, err := db.Query("SELECT * FROM tbtaskdue WHERE id=?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_due, &taskdue.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	json.NewEncoder(w).Encode(taskdue)
+}
+
 func UpdateTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskdue := taskModel.Taskdue{}
 	json.NewDecoder(r.Body).Decode(&taskdue)
+	fmt.Println(taskdue.Id)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_due=?,  WHERE id=?", taskdue.Task_id, taskdue.Date_due, taskdue.Id)
+	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_due=?  WHERE id=?", taskdue.Task_id, taskdue.Date_due, taskdue.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -206,7 +225,7 @@ func CreateTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskassignees := taskModel.Taskassignees{}
 	json.NewDecoder(r.Body).Decode(&taskassignees)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbtaskassignees (task_id, assignee, user_id) VALUES (?, ?, ?)", taskassignees.Task_id, taskassignees.Assignee, taskassignees.User_id)
+	_, err := db.Exec("INSERT INTO tbtaskassignees (task_id, user_id) VALUES (?, ?, ?)", taskassignees.Task_id, taskassignees.User_id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -222,7 +241,7 @@ func ListTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer result.Close()
 	for result.Next() {
 		var taskassignee taskModel.Taskassignees
-		err := result.Scan(&taskassignee.Task_id, &taskassignee.Assignee, &taskassignee.User_id)
+		err := result.Scan(&taskassignee.Id, &taskassignee.Task_id, &taskassignee.User_id, &taskassignee.Timestamps)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -231,11 +250,29 @@ func ListTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(taskassignees)
 }
 
+func GetTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	taskassignees := taskModel.Taskassignees{}
+	getid := r.URL.Path[len("/taskassignees/"):]
+
+	result, err := db.Query("SELECT * FROM tbtaskassignees WHERE id=?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&taskassignees.Id, &taskassignees.Task_id, &taskassignees.User_id, &taskassignees.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	json.NewEncoder(w).Encode(taskassignees)
+}
+
 func UpdateTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskassignees := taskModel.Taskassignees{}
 	json.NewDecoder(r.Body).Decode(&taskassignees)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtaskassignees SET task_id=?, assignee=?, user_id=? WHERE id=?", taskassignees.Task_id, taskassignees.Assignee, taskassignees.User_id, taskassignees.Id)
+	_, err := db.Exec("UPDATE tbtaskassignees SET task_id=?, user_id=? WHERE id=?", taskassignees.Task_id, taskassignees.User_id, taskassignees.Id)
 	if err != nil {
 		panic(err.Error())
 	}

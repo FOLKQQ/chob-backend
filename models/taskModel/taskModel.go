@@ -25,8 +25,8 @@ type Taskdue struct {
 }
 
 type Taskassignees struct {
-	Id       uint `json:"id"`
-	Task_id  uint `json:"task_id"`
-	Assignee uint `json:"assignee"`
-	User_id  uint `json:"user_id"`
+	Id         uint   `json:"id"`
+	Task_id    uint   `json:"task_id"`
+	User_id    uint   `json:"user_id"`
+	Timestamps string `json:"timestamps"`
 }
