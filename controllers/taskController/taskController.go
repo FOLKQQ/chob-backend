@@ -39,6 +39,24 @@ func ListTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(tasks)
 }
 
+func GetTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	task := taskModel.Task{}
+	getid := r.URL.Path[len("/task/"):]
+
+	result, err := db.Query("SELECT * FROM tbtask WHERE id=?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&task.Id, &task.Company_id, &task.Title, &task.Tax_status, &task.Tasklist_status, &task.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	json.NewEncoder(w).Encode(task)
+}
+
 func UpdateTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	task := taskModel.Task{}
 	json.NewDecoder(r.Body).Decode(&task)
@@ -81,7 +99,7 @@ func ListSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer result.Close()
 	for result.Next() {
 		var subtask taskModel.Subtask
-		err := result.Scan(&subtask.Task_id, &subtask.Title, &subtask.Subtask_status)
+		err := result.Scan(&subtask.Id, &subtask.Task_id, &subtask.Title, &subtask.Subtask_status, &subtask.Timestamps)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -90,11 +108,31 @@ func ListSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewEncoder(w).Encode(subtasks)
 }
 
+func GetSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	subtask := taskModel.Subtask{}
+	//how to get url /subtask/id
+	getid := r.URL.Path[len("/subtask/"):]
+	fmt.Println(getid)
+
+	result, err := db.Query("SELECT * FROM tbsubtask WHERE id=?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&subtask.Id, &subtask.Task_id, &subtask.Title, &subtask.Subtask_status, &subtask.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	json.NewEncoder(w).Encode(subtask)
+}
+
 func UpdateSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	subtask := taskModel.Subtask{}
 	json.NewDecoder(r.Body).Decode(&subtask)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbsubtask SET task_id=?, title=?, subtask_status=? WHERE task_id=?", subtask.Task_id, subtask.Title, subtask.Subtask_status, subtask.Task_id)
+	_, err := db.Exec("UPDATE tbsubtask SET task_id=?, title=?, subtask_status=? WHERE id=?", subtask.Task_id, subtask.Title, subtask.Subtask_status, subtask.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -104,8 +142,9 @@ func UpdateSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 func DeleteSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	subtask := taskModel.Subtask{}
 	json.NewDecoder(r.Body).Decode(&subtask)
+	fmt.Println(subtask.Id)
 	// ลบข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("DELETE FROM tbsubtask WHERE task_id=?", subtask.Task_id)
+	_, err := db.Exec("DELETE FROM tbsubtask WHERE id=?", subtask.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -145,7 +184,7 @@ func UpdateTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskdue := taskModel.Taskdue{}
 	json.NewDecoder(r.Body).Decode(&taskdue)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_due=?,  WHERE task_id=?", taskdue.Task_id, taskdue.Date_due, taskdue.Task_id)
+	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_due=?,  WHERE id=?", taskdue.Task_id, taskdue.Date_due, taskdue.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -156,7 +195,7 @@ func DeleteTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskdue := taskModel.Taskdue{}
 	json.NewDecoder(r.Body).Decode(&taskdue)
 	// ลบข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("DELETE FROM tbtaskdue WHERE task_id=?", taskdue.Task_id)
+	_, err := db.Exec("DELETE FROM tbtaskdue WHERE id=?", taskdue.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -196,7 +235,7 @@ func UpdateTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskassignees := taskModel.Taskassignees{}
 	json.NewDecoder(r.Body).Decode(&taskassignees)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtaskassignees SET task_id=?, assignee=?, user_id=? WHERE task_id=?", taskassignees.Task_id, taskassignees.Assignee, taskassignees.User_id, taskassignees.Task_id)
+	_, err := db.Exec("UPDATE tbtaskassignees SET task_id=?, assignee=?, user_id=? WHERE id=?", taskassignees.Task_id, taskassignees.Assignee, taskassignees.User_id, taskassignees.Id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -207,7 +246,7 @@ func DeleteTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskassignees := taskModel.Taskassignees{}
 	json.NewDecoder(r.Body).Decode(&taskassignees)
 	// ลบข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("DELETE FROM tbtaskassignees WHERE task_id=?", taskassignees.Task_id)
+	_, err := db.Exec("DELETE FROM tbtaskassignees WHERE id=?", taskassignees.Id)
 	if err != nil {
 		panic(err.Error())
 	}

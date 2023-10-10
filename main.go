@@ -5,10 +5,14 @@ package main
 import (
 	admincontroller "backend/controllers/adminController"
 	authcontrollers "backend/controllers/authController"
+	billingcontroller "backend/controllers/billingController"
+	chatcontroller "backend/controllers/chatController"
 	companycontroller "backend/controllers/companyController"
 	rolecontrollers "backend/controllers/roleController"
 	servicecontroller "backend/controllers/serviceController"
+	tagController "backend/controllers/tagController"
 	taskController "backend/controllers/taskController"
+	taxcontroller "backend/controllers/taxController"
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
 	//middlewarejwt "backend/middleware"
@@ -23,8 +27,6 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
-
-const Role = ""
 
 type Handler func(w http.ResponseWriter, r *http.Request) error
 
@@ -117,7 +119,7 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.AddAdmin(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/update", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.UpdateAdmin(w, r, db)
 		})
 	})
@@ -140,10 +142,10 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.Addroles(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.UpdateRoles(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.DeleteRoles(w, r, db)
 		})
 	})
@@ -157,10 +159,10 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Addteams(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Updateteams(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Deleteteams(w, r, db)
 		})
 	})
@@ -173,10 +175,10 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.AddCompany(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.UpdateCompany(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.DeleteCompany(w, r, db)
 		})
 	})
@@ -190,10 +192,10 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Addservice(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Updateservice(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Deleteservice(w, r, db)
 		})
 	})
@@ -206,10 +208,10 @@ func main() {
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Addservicetype(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Updateservicetype(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Deleteservicetype(w, r, db)
 		})
 	})
@@ -219,15 +221,200 @@ func main() {
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.ListTask(w, r, db)
 		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taskController.GetTask(w, r, db)
+		})
 		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
 			taskController.CreateTask(w, r, db)
 		})
-		r.Post("/update", func(w http.ResponseWriter, r *http.Request) {
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
 			taskController.UpdateTask(w, r, db)
 		})
-		r.Post("/delete", func(w http.ResponseWriter, r *http.Request) {
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
 			taskController.DeleteTask(w, r, db)
 		})
 	})
+
+	r.Route("/subtask", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.ListSubtask(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taskController.GetSubtask(w, r, db)
+		})
+
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.CreateSubtask(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.UpdateSubtask(w, r, db)
+		})
+		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.DeleteSubtask(w, r, db)
+		})
+	})
+
+	r.Route("/taskdue", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.ListTaskdue(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.CreateTaskdue(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.UpdateTaskdue(w, r, db)
+		})
+		r.Delete("/", func(w http.ResponseWriter, r *http.Request) {
+			taskController.DeleteTaskdue(w, r, db)
+		})
+	})
+
+	r.Route("/tag", func(r chi.Router) {
+		//r.Use(middlewarejwt.ValidateToken)
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			tagController.ListTag(w, r, db)
+		})
+		r.Post("/add", func(w http.ResponseWriter, r *http.Request) {
+			tagController.CreateTag(w, r, db)
+		})
+		r.Put("/update", func(w http.ResponseWriter, r *http.Request) {
+			tagController.UpdateTag(w, r, db)
+		})
+		r.Delete("/delete", func(w http.ResponseWriter, r *http.Request) {
+			tagController.DeleteTag(w, r, db)
+		})
+	})
+
+	r.Route("/chat", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			// List all chats
+			chatcontroller.ListChat_Team(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			// Create a new chat
+			chatcontroller.CreateChat_Team(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Get a specific chat by ID
+			chatcontroller.ChatByID(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			// Update a specific chat by ID
+			chatcontroller.UpdateChat_Team(w, r, db)
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Delete a specific chat by ID
+			chatcontroller.DeleteChat_Team(w, r, db)
+		})
+	})
+
+	r.Route("/chattask", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			// List all chat tasks
+			chatcontroller.ListChat_Task(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			// Create a new chat task
+			chatcontroller.CreateChat_Task(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Get a specific chat task by ID
+			chatcontroller.Chat_TaskByID(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			// Update a specific chat task by ID
+			chatcontroller.UpdateChat_Task(w, r, db)
+
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Delete a specific chat task by ID
+			chatcontroller.DeleteChat_Task(w, r, db)
+		})
+	})
+
+	r.Route("/tax_30", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.ListTax30(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.CreateTax30(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.GetTax30ById(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.UpdateTax30(w, r, db)
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.DeleteTax30(w, r, db)
+		})
+	})
+
+	r.Route("/tax_from", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.ListTax(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.CreateTax(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.GetTaxById(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.UpdateTax(w, r, db)
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			taxcontroller.DeleteTax(w, r, db)
+		})
+	})
+
+	r.Route("/billing", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			// List all billing records
+			billingcontroller.ListBilling(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			// Create a new billing record
+			billingcontroller.CreateBilling(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Get a specific billing record by ID
+			billingcontroller.GetBillingById(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			// Update a specific billing record by ID
+			billingcontroller.UpdateBilling(w, r, db)
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Delete a specific billing record by ID
+			billingcontroller.DeleteBilling(w, r, db)
+		})
+	})
+
+	r.Route("/billing_tax", func(r chi.Router) {
+		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+			// List all billing_tax records
+			billingcontroller.ListBilling_tax(w, r, db)
+		})
+		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
+			// Create a new billing_tax record
+			billingcontroller.CreateBilling_tax(w, r, db)
+		})
+		r.Get("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Get a specific billing_tax record by ID
+			billingcontroller.GetBilling_taxById(w, r, db)
+		})
+		r.Put("/", func(w http.ResponseWriter, r *http.Request) {
+			// Update a specific billing_tax record by ID
+			billingcontroller.UpdateBilling_tax(w, r, db)
+		})
+		r.Delete("/{id}", func(w http.ResponseWriter, r *http.Request) {
+			// Delete a specific billing_tax record by ID
+			billingcontroller.DeleteBilling_tax(w, r, db)
+		})
+	})
+
 	http.ListenAndServe(":8000", r)
 }

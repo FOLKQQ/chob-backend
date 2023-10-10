@@ -2,12 +2,10 @@ package chatcontroller
 
 import (
 	"backend/models/chatModel"
-	"backend/models/companyModel"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -16,10 +14,9 @@ func CreateChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	chat := chatModel.Chat_team{}
 	json.NewDecoder(r.Body).Decode(&chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
-	timestamps := time.Now().Format("2006-01-02 15:04:05")
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbchat_team (user_id, company_id, comment, timestamps) VALUES (?, ?, ?, ?)",
-		chat.User_id, chat.Company_id, chat.Comment, timestamps)
+	_, err := db.Exec("INSERT INTO tbchat_team (user_id, company_id, comment) VALUES (?, ?, ?)",
+		chat.User_id, chat.Company_id, chat.Comment)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -30,11 +27,10 @@ func CreateChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 func ListChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// getbody company_id
-	company := companyModel.Company{}
 	// สร้างตัวแปรเพื่อเก็บข้อมูลผู้ใช้ทั้งหมด
 	listchat := []chatModel.Chat_team{}
 	// ค้นหาข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล
-	rows, err := db.Query("SELECT * FROM tbchat_team wehere company_id = ?", company.ID)
+	rows, err := db.Query("SELECT * FROM tbchat_team ")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -57,10 +53,9 @@ func UpdateChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	chat := chatModel.Chat_team{}
 	json.NewDecoder(r.Body).Decode(&chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
-	timestamps := time.Now().Format("2006-01-02 15:04:05")
 	// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbchat_team SET user_id = ?, company_id = ?, comment = ?, timestamps = ? WHERE id = ?",
-		chat.User_id, chat.Company_id, chat.Comment, timestamps, chat.Id)
+	_, err := db.Exec("UPDATE tbchat_team SET user_id = ?, company_id = ?, comment = ? WHERE id = ?",
+		chat.User_id, chat.Company_id, chat.Comment, chat.Id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -86,10 +81,9 @@ func CreateChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	chat := chatModel.Chat_task{}
 	json.NewDecoder(r.Body).Decode(&chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
-	timestamps := time.Now().Format("2006-01-02 15:04:05")
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment, timestamps) VALUES (?, ?, ?, ?)",
-		chat.Task_id, chat.User_id, chat.Comment, timestamps)
+	_, err := db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment) VALUES (?, ?, ?)",
+		chat.Task_id, chat.User_id, chat.Comment)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -103,7 +97,7 @@ func ListChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// สร้างตัวแปรเพื่อเก็บข้อมูลผู้ใช้ทั้งหมด
 	listchat := []chatModel.Chat_task{}
 	// ค้นหาข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล
-	rows, err := db.Query("SELECT * FROM tbchat_task wehere task_id = ?")
+	rows, err := db.Query("SELECT * FROM tbchat_task")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -111,7 +105,7 @@ func ListChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// วนลูปเพื่อเก็บข้อมูลผู้ใช้ทั้งหมดลงในตัวแปร listuser
 	for rows.Next() {
 		chat := chatModel.Chat_task{}
-		err := rows.Scan(&chat.Task_id, &chat.User_id, &chat.Comment, &chat.Timestamps)
+		err := rows.Scan(&chat.Id, &chat.Task_id, &chat.User_id, &chat.Comment, &chat.Timestamps)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -126,10 +120,9 @@ func UpdateChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	chat := chatModel.Chat_task{}
 	json.NewDecoder(r.Body).Decode(&chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
-	timestamps := time.Now().Format("2006-01-02 15:04:05")
 	// อัพเดทข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbchat_task SET task_id = ?, user_id = ?, comment = ?, timestamps = ? WHERE id = ?",
-		chat.Task_id, chat.User_id, chat.Comment, timestamps, chat.Id)
+	_, err := db.Exec("UPDATE tbchat_task SET task_id = ?, user_id = ?, comment = ? WHERE id = ?",
+		chat.Task_id, chat.User_id, chat.Comment, chat.Id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -149,4 +142,100 @@ func DeleteChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// ส่งข้อความว่า "ลบข้อมูลเรียบร้อยแล้ว"
 	fmt.Fprintf(w, "ลบข้อมูลเรียบร้อยแล้ว")
+}
+
+func ChatByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// Parse the request body to get the company_id
+	type RequestBody struct {
+		Company_id int `json:"company_id"`
+	}
+	var reqBody RequestBody
+	err := json.NewDecoder(r.Body).Decode(&reqBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Query the database for the chat teams with the given company_id
+	rows, err := db.Query("SELECT * FROM tbchat_team WHERE company_id = ?", reqBody.Company_id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Create a slice to hold the chat teams
+	var chatTeams []chatModel.Chat_team
+
+	// Iterate over the rows and append the chat teams to the slice
+	for rows.Next() {
+		var chatTeam chatModel.Chat_team
+		err := rows.Scan(&chatTeam.Id, &chatTeam.User_id, &chatTeam.Company_id, &chatTeam.Comment, &chatTeam.Timestamps)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		chatTeams = append(chatTeams, chatTeam)
+	}
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode the chat teams slice as JSON and send it in the response
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(chatTeams)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func Chat_TaskByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	// Parse the request body to get the task_id
+	type RequestBody struct {
+		Task_id int `json:"task_id"`
+	}
+	var reqBody RequestBody
+	err := json.NewDecoder(r.Body).Decode(&reqBody)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Query the database for the chat tasks with the given task_id
+	rows, err := db.Query("SELECT * FROM tbchat_task WHERE task_id = ?", reqBody.Task_id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Create a slice to hold the chat tasks
+	var chatTasks []chatModel.Chat_task
+
+	// Iterate over the rows and append the chat tasks to the slice
+	for rows.Next() {
+		var chatTask chatModel.Chat_task
+		err := rows.Scan(&chatTask.Id, &chatTask.User_id, &chatTask.Comment, &chatTask.Timestamps)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		chatTasks = append(chatTasks, chatTask)
+	}
+	err = rows.Err()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode the chat tasks slice as JSON and send it in the response
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(chatTasks)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
