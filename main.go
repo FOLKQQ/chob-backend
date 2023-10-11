@@ -8,6 +8,7 @@ import (
 	billingcontroller "backend/controllers/billingController"
 	chatcontroller "backend/controllers/chatController"
 	companycontroller "backend/controllers/companyController"
+	dashboardcontroller "backend/controllers/dashboardController"
 	rolecontrollers "backend/controllers/roleController"
 	servicecontroller "backend/controllers/serviceController"
 	tagController "backend/controllers/tagController"
@@ -438,5 +439,10 @@ func main() {
 		})
 	})
 
+	r.Route("/dashboardadmins", func(r chi.Router) {
+		r.Get("/taskdue/{id}", func(w http.ResponseWriter, r *http.Request) {
+			dashboardcontroller.DashboardListTask(w, r, db)
+		})
+	})
 	http.ListenAndServe(":8000", r)
 }
