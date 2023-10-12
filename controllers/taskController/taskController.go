@@ -155,7 +155,7 @@ func CreateTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	taskdue := taskModel.Taskdue{}
 	json.NewDecoder(r.Body).Decode(&taskdue)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbtaskdue (task_id, date_due) VALUES (?, ?)", taskdue.Task_id, taskdue.Date_due)
+	_, err := db.Exec("INSERT INTO tbtaskdue (task_id,date_start, date_due) VALUES (?, ?)", taskdue.Task_id, taskdue.Date_start, taskdue.Date_due)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -171,7 +171,7 @@ func ListTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer result.Close()
 	for result.Next() {
 		var taskdue taskModel.Taskdue
-		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_due, &taskdue.Timestamps)
+		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_start, &taskdue.Date_due, &taskdue.Timestamps)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -190,7 +190,7 @@ func GetTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	defer result.Close()
 	for result.Next() {
-		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_due, &taskdue.Timestamps)
+		err := result.Scan(&taskdue.Id, &taskdue.Task_id, &taskdue.Date_start, &taskdue.Date_due, &taskdue.Timestamps)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -203,7 +203,7 @@ func UpdateTaskdue(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewDecoder(r.Body).Decode(&taskdue)
 	fmt.Println(taskdue.Id)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_due=?  WHERE id=?", taskdue.Task_id, taskdue.Date_due, taskdue.Id)
+	_, err := db.Exec("UPDATE tbtaskdue SET task_id=?, date_start, date_due=?  WHERE id=?", taskdue.Task_id, taskdue.Date_start, taskdue.Date_due, taskdue.Id)
 	if err != nil {
 		panic(err.Error())
 	}

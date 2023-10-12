@@ -14,7 +14,7 @@ func CreateTag(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	tag := tagModel.Tag{}
 	json.NewDecoder(r.Body).Decode(&tag)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbtag (company_id, name, color) VALUES(?, ?, ?)", tag.Company_id, tag.Name, tag.Color)
+	_, err := db.Exec("INSERT INTO tbtag (task_id, name, color) VALUES(?, ?, ?)", tag.Task_id, tag.Name, tag.Color)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -30,7 +30,7 @@ func ListTag(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer result.Close()
 	for result.Next() {
 		var tag tagModel.Tag
-		err := result.Scan(&tag.Id, &tag.Company_id, &tag.Name, &tag.Color)
+		err := result.Scan(&tag.Id, &tag.Task_id, &tag.Name, &tag.Color)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -44,7 +44,7 @@ func UpdateTag(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	tag := tagModel.Tag{}
 	json.NewDecoder(r.Body).Decode(&tag)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("UPDATE tbtag SET company_id=?, name=?, color=? WHERE id=?", tag.Company_id, tag.Name, tag.Color, tag.Id)
+	_, err := db.Exec("UPDATE tbtag SET task_id=?, name=?, color=? WHERE id=?", tag.Task_id, tag.Name, tag.Color, tag.Id)
 	if err != nil {
 		panic(err.Error())
 	}

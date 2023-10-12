@@ -70,7 +70,65 @@ func DashboardListTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 	}
 
-	//return data to json
-	json.NewEncoder(w).Encode(map[string]int{"taskduetoday": taskduetoday, "taskdueweek": taskdueweek, "taskduenextweek": taskduenextweek, "taskdueover": taskdueover})
+	type Tag struct {
+		Name  string `json:"name"`
+		Color string `json:"color"`
+	}
+
+	type Task struct {
+		Id           int    `json:"id"`
+		Company_name string `json:"company_name"`
+		Title        string `json:"title"`
+		UserId       string `json:"userId"`
+		DateStart    string `json:"dateStart"`
+		DateDue      string `json:"dateDue"`
+		Tags         []Tag
+	}
+
+	var tasks []Task
+	//query data from database tbtask and tbtaskdue and tbtaskassignees and tbcompany and tbtask one to many tbtag by id and count data from database to tasks variable
+	result5, err := db.Query("SELECT tbtask.id, tbcompany.company_name, tbtask.title, tbtaskassignees.user_id, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id WHERE tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result5.Close()
+
+	for result5.Next() {
+		var task Task
+		err := result5.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.DateStart, &task.DateDue)
+		if err != nil {
+			panic(err.Error())
+		}
+		tasks = append(tasks, task)
+	}
+
+	for i := 0; i < len(tasks); i++ {
+		result6, err := db.Query("SELECT tbtag.name, tbtag.color FROM tbtag WHERE tbtag.task_id = ?", tasks[i].Id)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer result6.Close()
+
+		for result6.Next() {
+			var tag Tag
+			err := result6.Scan(&tag.Name, &tag.Color)
+			if err != nil {
+				panic(err.Error())
+			}
+			tasks[i].Tags = append(tasks[i].Tags, tag)
+		}
+	}
+
+	//create map for store data
+	data := map[string]interface{}{
+		"taskduetoday":    taskduetoday,
+		"taskdueweek":     taskdueweek,
+		"taskduenextweek": taskduenextweek,
+		"taskdueover":     taskdueover,
+		"tasks":           tasks,
+	}
+
+	//encode data to json
+	json.NewEncoder(w).Encode(data)
 
 }
