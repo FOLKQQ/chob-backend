@@ -443,6 +443,9 @@ func main() {
 		r.Get("/taskdue/{id}", func(w http.ResponseWriter, r *http.Request) {
 			dashboardcontroller.DashboardListTask(w, r, db)
 		})
+		r.Get("/taskduelist/{id}/{name}", func(w http.ResponseWriter, r *http.Request) {
+			dashboardcontroller.DashboardListSelectResDue(w, r, db)
+		})
 	})
 	http.ListenAndServe(":8000", r)
 }
