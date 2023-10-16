@@ -153,6 +153,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 		Company_name string `json:"company_name"`
 		Title        string `json:"title"`
 		UserId       string `json:"userId"`
+		Image        string `json:"image"`
 		DateStart    string `json:"dateStart"`
 		DateDue      string `json:"dateDue"`
 		Tags         []Tag
@@ -160,7 +161,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 	if getname == "resduetoday" {
 		var tasks []Task
 		//query data from database tbtask and tbtaskdue and tbtaskassignees and tbcompany and tbtask one to many tbtag by id and count data from database to tasks variable
-		result, err := db.Query("SELECT tbtask.id, tbcompany.company_name, tbtask.title, tbtaskassignees.user_id, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id WHERE tbtaskdue.date_due = CURDATE() AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
+		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id,tbadmins.image, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id JOIN tbadmins ON tbtaskassignees.user_id = tbadmins.id WHERE tbtaskdue.date_due = CURDATE() AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -168,7 +169,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 
 		for result.Next() {
 			var task Task
-			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.DateStart, &task.DateDue)
+			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.Image, &task.DateStart, &task.DateDue)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -202,7 +203,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 	} else if getname == "resdueweek" {
 		var tasks []Task
 		//query data from database tbtask and tbtaskdue and tbtaskassignees and tbcompany and tbtask one to many tbtag by id and count data from database to tasks variable
-		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id WHERE tbtaskdue.date_due BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND DATE_ADD(CURDATE(), INTERVAL 6-WEEKDAY(CURDATE()) DAY) AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
+		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id,tbadmins.image, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id JOIN tbadmins ON tbtaskassignees.user_id = tbadmins.id WHERE tbtaskdue.date_due BETWEEN DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND DATE_ADD(CURDATE(), INTERVAL 6-WEEKDAY(CURDATE()) DAY) AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -210,7 +211,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 
 		for result.Next() {
 			var task Task
-			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.DateStart, &task.DateDue)
+			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.Image, &task.DateStart, &task.DateDue)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -243,7 +244,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 	} else if getname == "resduenextweek" {
 		var tasks []Task
 		//query data from database tbtask and tbtaskdue and tbtaskassignees and tbcompany and tbtask one to many tbtag by id and count data from database to tasks variable
-		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id WHERE tbtaskdue.date_due BETWEEN DATE_ADD(CURDATE(), INTERVAL 7-WEEKDAY(CURDATE()) DAY) AND DATE_ADD(CURDATE(), INTERVAL 13-WEEKDAY(CURDATE()) DAY) AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
+		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id,tbadmins.image, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id JOIN tbadmins ON tbtaskassignees.user_id = tbadmins.id WHERE tbtaskdue.date_due BETWEEN DATE_ADD(CURDATE(), INTERVAL 7-WEEKDAY(CURDATE()) DAY) AND DATE_ADD(CURDATE(), INTERVAL 13-WEEKDAY(CURDATE()) DAY) AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -251,7 +252,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 
 		for result.Next() {
 			var task Task
-			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.DateStart, &task.DateDue)
+			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.Image, &task.DateStart, &task.DateDue)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -284,7 +285,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 	} else if getname == "resdueover" {
 		var tasks []Task
 		//query data from database tbtask and tbtaskdue and tbtaskassignees and tbcompany and tbtask one to many tbtag by id and count data from database to tasks variable
-		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id WHERE tbtaskdue.date_due < CURDATE() AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
+		result, err := db.Query("SELECT tbtask.id , tbcompany.company_name, tbtask.title, tbtaskassignees.user_id,tbadmins.image, tbtaskdue.date_start, tbtaskdue.date_due FROM tbtask JOIN tbtaskdue ON tbtask.id = tbtaskdue.task_id JOIN tbtaskassignees ON tbtask.id = tbtaskassignees.task_id JOIN tbcompany ON tbtask.company_id = tbcompany.id JOIN tbadmins ON tbtaskassignees.user_id = tbadmins.id WHERE tbtaskdue.date_due < CURDATE() AND tbtaskassignees.user_id = (SELECT id FROM tbadmins WHERE id = ?) GROUP BY tbtask.id", getid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -292,7 +293,7 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 
 		for result.Next() {
 			var task Task
-			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.DateStart, &task.DateDue)
+			err := result.Scan(&task.Id, &task.Company_name, &task.Title, &task.UserId, &task.Image, &task.DateStart, &task.DateDue)
 			if err != nil {
 				panic(err.Error())
 			}
