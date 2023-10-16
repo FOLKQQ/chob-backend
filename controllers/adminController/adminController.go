@@ -247,5 +247,4 @@ func StatusWork(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
-
 }

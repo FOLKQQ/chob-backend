@@ -1,4 +1,4 @@
-package dashboardcontroller
+package dashboardtaskcontroller
 
 import (
 	"database/sql"
@@ -324,5 +324,37 @@ func DashboardListSelectResDue(w http.ResponseWriter, r *http.Request, db *sql.D
 		//encode data to json
 		json.NewEncoder(w).Encode(data)
 	}
+
+}
+
+func Dashboardsubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	//get id from url path
+	getid := r.URL.Path[len("/dashboardadmins/subtask/"):]
+
+	type Subtask struct {
+		Id             int    `json:"id"`
+		Title          string `json:"title"`
+		Subtask_status string `json:"subtask_status"`
+	}
+
+	var subtasks []Subtask
+	//query data from database tbsubtask by id
+	result, err := db.Query("SELECT tbsubtask.id, tbsubtask.title, tbsubtask.subtask_status FROM tbsubtask WHERE tbsubtask.task_id = ?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var subtask Subtask
+		err := result.Scan(&subtask.Id, &subtask.Title, &subtask.Subtask_status)
+		if err != nil {
+			panic(err.Error())
+		}
+		subtasks = append(subtasks, subtask)
+	}
+
+	//encode data to json
+	json.NewEncoder(w).Encode(subtasks)
 
 }

@@ -8,7 +8,7 @@ import (
 	billingcontroller "backend/controllers/billingController"
 	chatcontroller "backend/controllers/chatController"
 	companycontroller "backend/controllers/companyController"
-	dashboardcontroller "backend/controllers/dashboardController"
+	dashboardtaskcontroller "backend/controllers/dashboardtaskController"
 	rolecontrollers "backend/controllers/roleController"
 	servicecontroller "backend/controllers/serviceController"
 	tagController "backend/controllers/tagController"
@@ -441,10 +441,13 @@ func main() {
 
 	r.Route("/dashboardadmins", func(r chi.Router) {
 		r.Get("/taskdue/{id}", func(w http.ResponseWriter, r *http.Request) {
-			dashboardcontroller.DashboardListTask(w, r, db)
+			dashboardtaskcontroller.DashboardListTask(w, r, db)
 		})
 		r.Get("/taskduelist/{id}/{name}", func(w http.ResponseWriter, r *http.Request) {
-			dashboardcontroller.DashboardListSelectResDue(w, r, db)
+			dashboardtaskcontroller.DashboardListSelectResDue(w, r, db)
+		})
+		r.Get("/subtask/{id}", func(w http.ResponseWriter, r *http.Request) {
+			dashboardtaskcontroller.Dashboardsubtask(w, r, db)
 		})
 	})
 	http.ListenAndServe(":8000", r)
