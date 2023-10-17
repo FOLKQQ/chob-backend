@@ -80,14 +80,20 @@ func DeleteTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func CreateSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	subtask := taskModel.Subtask{}
+	type Addsubtask struct {
+		Task_id string `json:"task_id"`
+		Title   string `json:"title"`
+	}
+	subtask := Addsubtask{}
 	json.NewDecoder(r.Body).Decode(&subtask)
+	fmt.Println(subtask)
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbsubtask (task_id, title, subtask_status) VALUES (?, ?, ?)", subtask.Task_id, subtask.Title, subtask.Subtask_status)
+	_, err := db.Exec("INSERT INTO tbsubtask (task_id, title, subtask_status) VALUES (?, ?, ?)", subtask.Task_id, subtask.Title, "active")
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Fprintf(w, "New subtask was created")
+
+	json.NewEncoder(w).Encode(subtask)
 }
 
 func ListSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
@@ -105,7 +111,9 @@ func ListSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		}
 		subtasks = append(subtasks, subtask)
 	}
-	json.NewEncoder(w).Encode(subtasks)
+
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func GetSubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
