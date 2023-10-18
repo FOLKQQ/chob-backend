@@ -26,14 +26,6 @@ Timestamps     string `json:"timestamps"`
 
 */
 
-type Taskdue struct {
-	Id         uint   `json:"id"`
-	Task_id    uint   `json:"task_id"`
-	Date_start string `json:"date_start"`
-	Date_due   string `json:"date_due"`
-	Timestamps string `json:"timestamps"`
-}
-
 /*type SubTaskdue struct {
 	Id         uint   `json:"id"`
 	Subtask_id    uint   `json:"task_id"`
