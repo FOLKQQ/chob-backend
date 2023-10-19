@@ -78,8 +78,10 @@ func DeleteChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func CreateChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	chat := chatModel.Chat_task{}
+	//getbody request
+	chat := chatModel.Chat_task_input{}
 	json.NewDecoder(r.Body).Decode(&chat)
+	fmt.Println(chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
 	_, err := db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment) VALUES (?, ?, ?)",
@@ -90,10 +92,10 @@ func CreateChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	// ส่งข้อความว่า "บันทึกข้อมูลเรียบร้อยแล้ว"
 	fmt.Fprintf(w, "บันทึกข้อมูลเรียบร้อยแล้ว")
+
 }
 
 func ListChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	// getbody task_id
 	// สร้างตัวแปรเพื่อเก็บข้อมูลผู้ใช้ทั้งหมด
 	listchat := []chatModel.Chat_task{}
 	// ค้นหาข้อมูลผู้ใช้ทั้งหมดจากฐานข้อมูล
@@ -193,19 +195,10 @@ func ChatByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 }
 
 func Chat_TaskByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	// Parse the request body to get the task_id
-	type RequestBody struct {
-		Task_id int `json:"task_id"`
-	}
-	var reqBody RequestBody
-	err := json.NewDecoder(r.Body).Decode(&reqBody)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
+	//getid from url path
+	getid := r.URL.Path[len("/chattask/"):]
 	// Query the database for the chat tasks with the given task_id
-	rows, err := db.Query("SELECT * FROM tbchat_task WHERE task_id = ?", reqBody.Task_id)
+	rows, err := db.Query("SELECT tbchat_task.id ,tbchat_task.user_id, tbchat_task.comment, tbchat_task.timestamp ,tbadmins.username FROM tbchat_task JOIN tbadmins ON tbadmins.id = tbchat_task.user_id  WHERE tbchat_task.task_id = ?", getid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -213,12 +206,19 @@ func Chat_TaskByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer rows.Close()
 
 	// Create a slice to hold the chat tasks
-	var chatTasks []chatModel.Chat_task
+	type ChatTask struct {
+		Id         int    `json:"id"`
+		User_id    int    `json:"user_id"`
+		Comment    string `json:"comment"`
+		Timestamps string `json:"timestamps"`
+		Username   string `json:"username"`
+	}
+	var chatTasks []ChatTask
 
 	// Iterate over the rows and append the chat tasks to the slice
 	for rows.Next() {
-		var chatTask chatModel.Chat_task
-		err := rows.Scan(&chatTask.Id, &chatTask.User_id, &chatTask.Comment, &chatTask.Timestamps)
+		var chatTask ChatTask
+		err := rows.Scan(&chatTask.Id, &chatTask.User_id, &chatTask.Comment, &chatTask.Timestamps, &chatTask.Username)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -238,4 +238,5 @@ func Chat_TaskByID(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 }
