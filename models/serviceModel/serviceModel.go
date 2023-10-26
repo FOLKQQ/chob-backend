@@ -3,7 +3,7 @@ package servicemodel
 type Service struct {
 	Id             uint   `json:"id"`
 	Servicetype_id uint   `json:"servicetype_id"`
-	Company_id     uint   `json:"company_id"`
+	Task_id        uint   `json:"task_id"`
 	Date_start     string `json:"date_start"`
 	Date_due       string `json:"date_dule"`
 	Timestamps     string `json:"timestamps"`

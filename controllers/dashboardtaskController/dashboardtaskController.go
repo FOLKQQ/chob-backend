@@ -1,6 +1,9 @@
 package dashboardtaskcontroller
 
 import (
+	adminModel "backend/models/adminModel"
+	"backend/models/companyModel"
+	servicemodel "backend/models/serviceModel"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -382,5 +385,166 @@ func Dashboardsubtask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 
 	//encode data to json
 	json.NewEncoder(w).Encode(subtasks)
+
+}
+
+func Newproject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	//query tbrole and join tbadmins tbrole.title = 'worker'
+	rows, err := db.Query("SELECT tbadmins.id ,tbadmins.firstname ,tbadmins.lastname FROM tbadmins JOIN tbrole ON tbadmins.role_id = tbrole.id WHERE tbrole.title = 'worker' ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
+	results := []adminModel.Admin{}
+	for rows.Next() {
+		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
+		admin := adminModel.Admin{}
+		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
+		err := rows.Scan(
+			&admin.ID,
+			&admin.Firstname,
+			&admin.Lastname,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// เก็บ struct ลงใน slice
+		results = append(results, admin)
+	}
+
+	// ตรวจสอบข้อผิดพลาดหลังจากวนลูป
+	if err := rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//query tbrole and join tbadmins tbrole.title = 'chacker'
+	rows2, err := db.Query("SELECT tbadmins.id ,tbadmins.firstname ,tbadmins.lastname FROM tbadmins JOIN tbrole ON tbadmins.role_id = tbrole.id WHERE tbrole.title = 'chacker' ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows2.Close()
+
+	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
+	results2 := []adminModel.Admin{}
+	for rows2.Next() {
+		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
+		admin := adminModel.Admin{}
+		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
+		err := rows2.Scan(
+			&admin.ID,
+			&admin.Firstname,
+			&admin.Lastname,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// เก็บ struct ลงใน slice
+		results2 = append(results2, admin)
+	}
+
+	// ตรวจสอบข้อผิดพลาดหลังจากวนลูป
+	if err := rows2.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//query tbcompany
+	rows3, err := db.Query("SELECT * FROM tbcompany ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows3.Close()
+
+	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
+	results3 := []companyModel.Company{}
+	for rows3.Next() {
+		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
+		company := companyModel.Company{}
+		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
+		err := rows3.Scan(
+			&company.ID,
+			&company.TypeCompany,
+			&company.CompanyName,
+			&company.CodeIdentification,
+			&company.Signature,
+			&company.StartComDate,
+			&company.StartVatDate,
+			&company.BusinessType,
+			&company.Id_dbd,
+			&company.Pass_dbd,
+			&company.Id_filing,
+			&company.Pass_filing,
+			&company.Email,
+			&company.Tal,
+			&company.Address,
+			&company.Addressextra,
+			&company.Subdistrict,
+			&company.District,
+			&company.Province,
+			&company.Zipcode,
+			&company.Status,
+			&company.Timestamps,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// เก็บ struct ลงใน slice
+		results3 = append(results3, company)
+	}
+
+	// ตรวจสอบข้อผิดพลาดหลังจากวนลูป
+	if err := rows3.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//query tbservice_type
+	rows4, err := db.Query("SELECT * FROM tbservice_type ")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows4.Close()
+
+	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
+	results4 := []servicemodel.Servicetype{}
+	for rows4.Next() {
+		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
+		servicetype := servicemodel.Servicetype{}
+		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
+		err := rows4.Scan(
+			&servicetype.Id,
+			&servicetype.Service_name,
+			&servicetype.Detail,
+			&servicetype.Price,
+			&servicetype.Timestamps,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// เก็บ struct ลงใน slice
+		results4 = append(results4, servicetype)
+	}
+
+	//create map for store data
+	data := map[string]interface{}{
+		"worker":  results,
+		"chacker": results2,
+		"company": results3,
+		"service": results4,
+	}
+
+	//encode data to json
+	json.NewEncoder(w).Encode(data)
 
 }

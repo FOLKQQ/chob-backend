@@ -17,6 +17,7 @@ import (
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
 	//middlewarejwt "backend/middleware"
+	"backend/services"
 	"fmt"
 	"log"
 	"net/http"
@@ -90,7 +91,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
-
+	//r.Use(middlewarejwt.ValidateToken)
 	r.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"https://*", "http://*"},
@@ -111,7 +112,6 @@ func main() {
 	})
 
 	r.Route("/admins", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
 		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -123,9 +123,12 @@ func main() {
 		r.Delete("/update", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.UpdateAdmin(w, r, db)
 		})
+		r.Get("/newproject", func(w http.ResponseWriter, r *http.Request) {
+			dashboardtaskcontroller.Newproject(w, r, db)
+		})
 	})
 	r.Route("/admins/dashboard", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+		//
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			admincontroller.DashboardAdmin(w, r, db)
 		})
@@ -135,7 +138,7 @@ func main() {
 	})
 
 	r.Route("/roles", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			rolecontrollers.Listroles(w, r, db)
@@ -152,7 +155,7 @@ func main() {
 	})
 
 	r.Route("/teams", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		//r.Use(middlewarejwt.Rolesv)
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			teamcontroller.Listteams(w, r, db)
@@ -169,7 +172,7 @@ func main() {
 	})
 
 	r.Route("/companys", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			companycontroller.ListCompany(w, r, db)
 		})
@@ -185,7 +188,7 @@ func main() {
 	})
 
 	r.Route("/services", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Listservice(w, r, db)
 		})
@@ -202,7 +205,7 @@ func main() {
 	})
 
 	r.Route("/servicetypes", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			servicecontroller.Listservicetype(w, r, db)
 		})
@@ -218,7 +221,7 @@ func main() {
 	})
 
 	r.Route("/task", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.ListTask(w, r, db)
 		})
@@ -237,7 +240,7 @@ func main() {
 	})
 
 	r.Route("/subtask", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.ListSubtask(w, r, db)
 		})
@@ -257,7 +260,7 @@ func main() {
 	})
 
 	r.Route("/taskassignees", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taskController.ListTaskassignees(w, r, db)
 		})
@@ -276,7 +279,7 @@ func main() {
 	})
 
 	r.Route("/tag", func(r chi.Router) {
-		//r.Use(middlewarejwt.ValidateToken)
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			tagController.ListTag(w, r, db)
 		})
@@ -292,6 +295,7 @@ func main() {
 	})
 
 	r.Route("/chat", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			// List all chats
 			chatcontroller.ListChat_Team(w, r, db)
@@ -315,6 +319,7 @@ func main() {
 	})
 
 	r.Route("/chattask", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			// List all chat tasks
 			chatcontroller.ListChat_Task(w, r, db)
@@ -339,6 +344,7 @@ func main() {
 	})
 
 	r.Route("/tax_30", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taxcontroller.ListTax30(w, r, db)
 		})
@@ -357,6 +363,7 @@ func main() {
 	})
 
 	r.Route("/tax_from", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			taxcontroller.ListTax(w, r, db)
 		})
@@ -375,6 +382,7 @@ func main() {
 	})
 
 	r.Route("/billing", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			// List all billing records
 			billingcontroller.ListBilling(w, r, db)
@@ -398,6 +406,7 @@ func main() {
 	})
 
 	r.Route("/billing_tax", func(r chi.Router) {
+
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 			// List all billing_tax records
 			billingcontroller.ListBilling_tax(w, r, db)
@@ -421,6 +430,7 @@ func main() {
 	})
 
 	r.Route("/dashboardadmins", func(r chi.Router) {
+
 		r.Get("/taskdue/{id}", func(w http.ResponseWriter, r *http.Request) {
 			dashboardtaskcontroller.DashboardListTask(w, r, db)
 		})
@@ -431,5 +441,10 @@ func main() {
 			dashboardtaskcontroller.Dashboardsubtask(w, r, db)
 		})
 	})
+
+	r.Post("/mail", func(w http.ResponseWriter, r *http.Request) {
+		services.SendMail(w, r)
+	})
+
 	http.ListenAndServe(":8000", r)
 }

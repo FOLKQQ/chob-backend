@@ -154,7 +154,7 @@ func Listservice(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 		err := rows.Scan(
 			&service.Id,
 			&service.Servicetype_id,
-			&service.Company_id,
+			&service.Task_id,
 			&service.Date_start,
 			&service.Date_due,
 			&service.Timestamps,
@@ -187,7 +187,7 @@ func Addservice(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// insert data to database
-	_, err = db.Exec("INSERT INTO tbservice ( servicetype_id,company_id, date_start, date_dule) VALUES (?,?,?,?)", service.Servicetype_id, service.Company_id, service.Date_start, service.Date_due)
+	_, err = db.Exec("INSERT INTO tbservice ( servicetype_id,task_id, date_start, date_dule) VALUES (?,?,?,?)", service.Servicetype_id, service.Task_id, service.Date_start, service.Date_due)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -210,7 +210,7 @@ func Updateservice(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 
 	// update data to database
-	stmt, err := db.Prepare("UPDATE tbservice SET company_id=?, servicetype_id=?, date_start=?, date_dule=? WHERE id=?")
+	stmt, err := db.Prepare("UPDATE tbservice SET task_id=?, servicetype_id=?, date_start=?, date_dule=? WHERE id=?")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -219,7 +219,7 @@ func Updateservice(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer stmt.Close()
 
 	// สั่งให้เริ่มทำการแก้ไขข้อมูลลงในฐานข้อมูล
-	_, err = stmt.Exec(service.Company_id, service.Servicetype_id, service.Date_start, service.Date_due, service.Id)
+	_, err = stmt.Exec(service.Task_id, service.Servicetype_id, service.Date_start, service.Date_due, service.Id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
