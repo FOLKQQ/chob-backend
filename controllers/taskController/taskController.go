@@ -266,3 +266,72 @@ func DeleteTaskassignees(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	}
 	fmt.Fprintf(w, "Taskassignees was deleted")
 }
+
+func CreateSubtasklist(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	subtasklist := taskModel.SubTasklist{}
+	json.NewDecoder(r.Body).Decode(&subtasklist)
+	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
+	_, err := db.Exec("INSERT INTO tbsubtasklist (subtask_id, title, subtasklist_status, date_start, date_due) VALUES (?, ?, ?, ?, ?)", subtasklist.Subtask_id, subtasklist.Title, subtasklist.Subtasklist_status, subtasklist.Date_start, subtasklist.Date_due)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Fprintf(w, "New subtasklist was created")
+}
+
+func ListSubtasklist(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	var subtasklists []taskModel.SubTasklist
+	result, err := db.Query("SELECT * FROM tbsubtasklist")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		var subtasklist taskModel.SubTasklist
+		err := result.Scan(&subtasklist.Id, &subtasklist.Subtask_id, &subtasklist.Title, &subtasklist.Subtasklist_status, &subtasklist.Date_start, &subtasklist.Date_due, &subtasklist.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+		subtasklists = append(subtasklists, subtasklist)
+	}
+	json.NewEncoder(w).Encode(subtasklists)
+}
+
+func GetSubtasklist(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	subtasklist := taskModel.SubTasklist{}
+	getid := r.URL.Path[len("/subtasklist/"):]
+
+	result, err := db.Query("SELECT * FROM tbsubtasklist WHERE id=?", getid)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&subtasklist.Id, &subtasklist.Subtask_id, &subtasklist.Title, &subtasklist.Subtasklist_status, &subtasklist.Date_start, &subtasklist.Date_due, &subtasklist.Timestamps)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	json.NewEncoder(w).Encode(subtasklist)
+}
+
+func UpdateSubtasklist(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	subtasklist := taskModel.SubTasklist{}
+	json.NewDecoder(r.Body).Decode(&subtasklist)
+	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
+	_, err := db.Exec("UPDATE tbsubtasklist SET subtask_id=?, title=?, subtasklist_status=?, date_start=?, date_due=? WHERE id=?", subtasklist.Subtask_id, subtasklist.Title, subtasklist.Subtasklist_status, subtasklist.Date_start, subtasklist.Date_due, subtasklist.Id)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Fprintf(w, "Subtasklist was updated")
+}
+
+func DeleteSubtasklist(w http.ResponseWriter, r *http.Request, db *sql.DB) {
+	subtasklist := taskModel.SubTasklist{}
+	json.NewDecoder(r.Body).Decode(&subtasklist)
+	// ลบข้อมูลผู้ใช้ในฐานข้อมูล
+	_, err := db.Exec("DELETE FROM tbsubtasklist WHERE id=?", subtasklist.Id)
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Fprintf(w, "Subtasklist was deleted")
+}
