@@ -11,14 +11,53 @@ import (
 )
 
 func CreateTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
-	task := taskModel.Task{}
+	// ดึงข้อมูลจากฟอร์ม และ แปลงเป็น struct
+	task := taskModel.Taskadd{}
 	json.NewDecoder(r.Body).Decode(&task)
+	//how to format task.date_start and task.date_due to dd/mm/yyyy ใช้ได้แค่ตอนเริ่มต้น ถ้าเปลี่ยนวันที่จะต้องเปลี่ยนในฟังก์ชันนี้ด้วย
+	var tasklist_status = "active"
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbtask (company_id, title, tax_status, tasklist_status) VALUES (?, ?, ?, ?)", task.Company_id, task.Title, task.Tax_status, task.Tasklist_status)
+	_, err := db.Exec("INSERT INTO tbtask (company_id,title,date_start,date_due,repeatwork,cyclemonth,tasklist_status) VALUES (?, ?, ?, ?, ?)", task.CompanyName, task.ProjectName, task.StartDate, task.EndDate, task.Repeat, task.Cyclemonth, tasklist_status)
 	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Fprintf(w, "New task was created")
+	//get id task ที่เพิ่งสร้าง จากนั้นเอาไปใช้ในการสร้าง taskassignees , tbchacker_work ,tbservice  ต่อไป
+	var task_id int
+	result, err := db.Query("SELECT id FROM tbtask ORDER BY id DESC LIMIT 1")
+	if err != nil {
+		panic(err.Error())
+	}
+	defer result.Close()
+	for result.Next() {
+		err := result.Scan(&task_id)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	// สร้าง taskassignees
+	for _, worker := range task.Worker {
+		_, err := db.Exec("INSERT INTO tbtaskassignees (task_id, user_id) VALUES (?, ?)", task_id, worker)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	// สร้าง tbchacker_work
+	for _, checker := range task.Checker {
+		_, err := db.Exec("INSERT INTO tbchacker_work (task_id, user_id) VALUES (?, ?)", task_id, checker)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	// สร้าง tbservice
+	for _, service := range task.Service {
+		_, err := db.Exec("INSERT INTO tbservice (servicetype_id, task_id) VALUES (?, ?)", service, task_id)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+	//return status 200
+	w.WriteHeader(http.StatusOK)
+
 }
 
 func ListTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {

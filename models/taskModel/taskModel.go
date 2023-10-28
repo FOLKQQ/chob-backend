@@ -1,5 +1,7 @@
 package taskModel
 
+import "time"
+
 type Task struct {
 	Id              uint   `json:"id"`
 	Company_id      uint   `json:"company_id"`
@@ -7,6 +9,23 @@ type Task struct {
 	Tax_status      string `json:"tax_status"`
 	Tasklist_status string `json:"tasklist_status"`
 	Timestamps      string `json:"timestamps"`
+}
+
+// worker is array id and name
+type Worker struct {
+	Id uint
+}
+
+type Taskadd struct {
+	ProjectName string    `json:"projectname"`
+	CompanyName string    `json:"company_name"`
+	StartDate   time.Time `json:"startdate"`
+	EndDate     time.Time `json:"enddate"`
+	Repeat      string    `json:"repeat"`
+	Cyclemonth  string    `json:"cyclemonth"`
+	Worker      []int     `json:"worker"`
+	Checker     []int     `json:"checker"`
+	Service     []int     `json:"service"`
 }
 
 type Subtask struct {
