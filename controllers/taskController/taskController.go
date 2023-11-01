@@ -17,7 +17,7 @@ func CreateTask(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	//how to format task.date_start and task.date_due to dd/mm/yyyy ใช้ได้แค่ตอนเริ่มต้น ถ้าเปลี่ยนวันที่จะต้องเปลี่ยนในฟังก์ชันนี้ด้วย
 	var tasklist_status = "active"
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbtask (company_id,title,date_start,date_due,repeatwork,cyclemonth,tasklist_status) VALUES (?, ?, ?, ?, ?)", task.CompanyName, task.ProjectName, task.StartDate, task.EndDate, task.Repeat, task.Cyclemonth, tasklist_status)
+	_, err := db.Exec("INSERT INTO tbtask (company_id,title,date_start,date_due,repeatwork,cyclemonth,tasklist_status) VALUES (?, ?, ?, ?, ?,?,?)", task.CompanyName, task.ProjectName, task.StartDate, task.EndDate, task.Repeat, task.Cyclemonth, tasklist_status)
 	if err != nil {
 		panic(err.Error())
 	}
