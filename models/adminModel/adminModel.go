@@ -28,3 +28,19 @@ type AddAdmin struct {
 	Token_link string `json:"token_link"`
 	Status     string `json:"status"`
 }
+
+type Adminlist struct {
+	ID         int    `json:"id"`
+	RoleID     int    `json:"role_id"`
+	TeamID     int    `json:"team_id"`
+	UserID     string `json:"user_id"`
+	Username   string `json:"username"`
+	Firstname  string `json:"firstname"`
+	Lastname   string `json:"lastname"`
+	Email      string `json:"email"`
+	Image      string `json:"image"`
+	Tal        string `json:"tal"`
+	Token_link string `json:"token_link"`
+	Status     string `json:"status"`
+	Timestamps string `json:"timestamps"`
+}

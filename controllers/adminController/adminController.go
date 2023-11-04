@@ -20,7 +20,7 @@ func GeneratePasswordHash(password string) ([]byte, error) {
 
 func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	// ดำเนินการค้นหาข้อมูลทั้งหมดจากฐานข้อมูล
-	rows, err := db.Query("SELECT * FROM tbadmins")
+	rows, err := db.Query("SELECT id,role_id,team_id,userid,username,firstname,lastname,email,image,tal,token_link,status,timestamp FROM tbadmins")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -28,10 +28,10 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	defer rows.Close()
 
 	// สร้าง slice เพื่อเก็บข้อมูลที่ค้นพบ
-	results := []adminModel.Admin{}
+	results := []adminModel.Adminlist{}
 	for rows.Next() {
 		// สร้างตัวแปรเพื่อเก็บข้อมูลที่ query ค้นพบ
-		admin := adminModel.Admin{}
+		admin := adminModel.Adminlist{}
 		// สั่งสแกนข้อมูลจาก query ไปเก็บใน struct ตามชื่อฟิลด์
 		err := rows.Scan(
 			&admin.ID,
@@ -39,7 +39,6 @@ func ListAdmin(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 			&admin.TeamID,
 			&admin.UserID,
 			&admin.Username,
-			&admin.Password,
 			&admin.Firstname,
 			&admin.Lastname,
 			&admin.Email,

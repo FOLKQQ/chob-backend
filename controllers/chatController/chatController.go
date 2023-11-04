@@ -15,7 +15,7 @@ func CreateChat_Team(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	json.NewDecoder(r.Body).Decode(&chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbchat_team (user_id, company_id, comment) VALUES (?, ?, ?)",
+	_, err := db.Exec("INSERT INTO tbchat_team (user_id, company_id, comment ,tag_user_id) VALUES (?, ?, ?)",
 		chat.User_id, chat.Company_id, chat.Comment)
 	if err != nil {
 		fmt.Println(err)
@@ -84,8 +84,8 @@ func CreateChat_Task(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	fmt.Println(chat)
 	// สร้าง timestamp ในรูปแบบของ datetime
 	// บันทึกข้อมูลผู้ใช้ในฐานข้อมูล
-	_, err := db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment) VALUES (?, ?, ?)",
-		chat.Task_id, chat.User_id, chat.Comment)
+	_, err := db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment,tag_user_id) VALUES (?, ?, ?,?)",
+		chat.Task_id, chat.User_id, chat.Comment, chat.Tag_user_id)
 	if err != nil {
 		fmt.Println(err)
 	}
