@@ -46,14 +46,6 @@ func goDotEnvVariable(key string) string {
 	return os.Getenv(key)
 }
 
-func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := h(w, r); err != nil {
-		// handle returned error here.
-		w.WriteHeader(503)
-		w.Write([]byte("bad"))
-	}
-}
-
 func checkrole(w http.ResponseWriter, r *http.Request) {
 
 	dotenv := goDotEnvVariable("SecretKey")
@@ -84,7 +76,6 @@ func main() {
 		return
 	}
 	defer db.Close()
-
 	r := chi.NewRouter()
 	r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
 	r.Use(middleware.AllowContentType("application/json", "text/xml"))
