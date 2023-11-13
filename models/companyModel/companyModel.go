@@ -14,7 +14,7 @@ type Company struct {
 	Id_filing          string `json:"id_filing"`
 	Pass_filing        string `json:"pass_filing"`
 	Email              string `json:"email"`
-	Tal                string `json:"tal"`
+	Tal                int    `json:"tal"`
 	Status             string `json:"status"`
 	Address            string `json:"address"`
 	Addressextra       string `json:"addressextra"`

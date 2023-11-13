@@ -539,7 +539,7 @@ func Newproject(w http.ResponseWriter, r *http.Request, db *sql.DB) {
 	//create map for store data
 	data := map[string]interface{}{
 		"worker":  results,
-		"chacker": results2,
+		"checker": results2,
 		"company": results3,
 		"service": results4,
 	}
