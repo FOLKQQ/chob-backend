@@ -22,13 +22,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	//"os/signal"
 	//"syscall"
+	"encoding/json"
+	"strings"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 )
 
@@ -68,6 +72,43 @@ func checkrole(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type ChatServer struct {
+	mu    sync.Mutex
+	rooms map[string]map[*websocket.Conn]struct{}
+}
+
+func (cs *ChatServer) AddClient(roomID string, conn *websocket.Conn) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	if _, ok := cs.rooms[roomID]; !ok {
+		cs.rooms[roomID] = make(map[*websocket.Conn]struct{})
+	}
+	cs.rooms[roomID][conn] = struct{}{}
+}
+
+func (cs *ChatServer) RemoveClient(roomID string, conn *websocket.Conn) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	delete(cs.rooms[roomID], conn)
+	if len(cs.rooms[roomID]) == 0 {
+		delete(cs.rooms, roomID)
+	}
+}
+
+func (cs *ChatServer) Broadcast(roomID string, msg []byte) {
+	cs.mu.Lock()
+	defer cs.mu.Unlock()
+	for conn := range cs.rooms[roomID] {
+		go func(conn *websocket.Conn) {
+			err := conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				cs.RemoveClient(roomID, conn)
+				conn.Close()
+			}
+		}(conn)
+	}
+}
+
 func main() {
 	// Initialize the database connection
 	db, err := database.InitDB()
@@ -76,6 +117,7 @@ func main() {
 		return
 	}
 	defer db.Close()
+
 	r := chi.NewRouter()
 	r.Use(middleware.AllowContentEncoding("deflate", "gzip"))
 	r.Use(middleware.AllowContentType("application/json", "text/xml"))
@@ -311,6 +353,57 @@ func main() {
 		})
 	})
 
+	var upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin:     func(r *http.Request) bool { return true },
+	}
+
+	chatServer := &ChatServer{
+		rooms: make(map[string]map[*websocket.Conn]struct{}),
+	}
+
+	r.HandleFunc("/ws/chattask/{id}", func(w http.ResponseWriter, r *http.Request) {
+		roomID := strings.TrimPrefix(r.URL.Path, "/ws/")
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		chatServer.AddClient(roomID, conn)
+		defer chatServer.RemoveClient(roomID, conn)
+		defer conn.Close()
+		//chatcontroller.CreateChat_Task(w, r, db)
+		for {
+			//read json message from browser
+			_, msg, err := conn.ReadMessage()
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			var message map[string]interface{}
+			err = json.Unmarshal(msg, &message)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			// Get the task ID
+			taskId := message["task_id"].(string)
+
+			// Get the user ID
+			userId := message["user_id"].(string)
+
+			// Get the comment
+			comment := message["comment"].(string)
+
+			// Get the tag user ID
+			tagUserId := message["tag_user_id"].(string)
+
+			log.Printf("Message received: %s", taskId, userId, comment, tagUserId)
+		}
+	})
+
 	r.Route("/chattask", func(r chi.Router) {
 
 		r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -334,6 +427,7 @@ func main() {
 			// Delete a specific chat task by ID
 			chatcontroller.DeleteChat_Task(w, r, db)
 		})
+
 	})
 
 	r.Route("/tax_30", func(r chi.Router) {
