@@ -17,7 +17,7 @@ import (
 	teamcontroller "backend/controllers/teamController"
 	"backend/database"
 	//middlewarejwt "backend/middleware"
-	"backend/services"
+	mailController "backend/controllers/mailController"
 	"fmt"
 	"log"
 	"net/http"
@@ -375,33 +375,38 @@ func main() {
 		defer conn.Close()
 		//chatcontroller.CreateChat_Task(w, r, db)
 		for {
-			//read json message from browser
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				log.Println(err)
 				return
 			}
-			var message map[string]interface{}
-			err = json.Unmarshal(msg, &message)
-			if err != nil {
-				log.Println(err)
-				return
+
+			// Assuming msg is a JSON string, you can use a struct to unmarshal it
+			var receivedMessage struct {
+				TaskID    string `json:"task_id"`
+				UserID    string `json:"user_id"`
+				Username  string `json:"username"`
+				Comment   string `json:"comment"`
+				TagUserID string `json:"tag_user_id"`
 			}
 
-			// Get the task ID
-			taskId := message["task_id"].(string)
+			if err := json.Unmarshal(msg, &receivedMessage); err != nil {
+				log.Println("Error unmarshalling JSON:", err)
+				continue
+			}
 
-			// Get the user ID
-			userId := message["user_id"].(string)
+			fmt.Printf("Received message: %+v\n", receivedMessage)
+			_, err = db.Exec("INSERT INTO tbchat_task (task_id, user_id, comment,tag_user_id) VALUES (?, ?, ?,?)",
+				receivedMessage.TaskID, receivedMessage.UserID, receivedMessage.Comment, receivedMessage.TagUserID)
+			if err != nil {
+				fmt.Println(err)
+			}
 
-			// Get the comment
-			comment := message["comment"].(string)
+			// Broadcast the message to all clients in the room
+			chatServer.Broadcast(roomID, msg)
 
-			// Get the tag user ID
-			tagUserId := message["tag_user_id"].(string)
-
-			log.Printf("Message received: %s", taskId, userId, comment, tagUserId)
 		}
+
 	})
 
 	r.Route("/chattask", func(r chi.Router) {
@@ -530,7 +535,7 @@ func main() {
 	})
 
 	r.Post("/mail", func(w http.ResponseWriter, r *http.Request) {
-		services.SendMail(w, r)
+		mailController.SendMail(w, r)
 	})
 
 	http.ListenAndServe(":8000", r)
